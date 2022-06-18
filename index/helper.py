@@ -43,17 +43,18 @@ class Helper:
         }
         return jwt.encode(payload, self.secret_key, algorithm=self.algorithm)
 
-    def modify_input_for_multiple_files(self, property_id, image):
+    def modify_audio_input(self, audio_id, audio):
         dict = {}
-        dict["property_id"] = property_id
-        dict["image"] = image
+        dict["audio_id"] = audio_id
+        dict["audio"] = audio
         return dict
 
     def calculate_age(born):
-        today = datetime.date.today()
+        today = datetime.today().date()
         try:
             birthday = born.replace(year=today.year)
-        except ValueError:  # raised when birth date is February 29 and the current year is not a leap year
+        except ValueError:
+            # raised when birth date is February 29 and the current year is not a leap year
             birthday = born.replace(year=today.year, month=born.month + 1, day=1)
         if birthday > today:
             return today.year - born.year - 1
@@ -209,13 +210,18 @@ def cycle_events(last_period, cycle_length, period_length):
 
     next_period = last_period + timedelta(days=cycle_length)
 
-    free_period = next_period + timedelta(days=cycle_length) + period_length
+    free_period = next_period + timedelta(days=period_length)
 
     luteal = free_period + timedelta(days=period_length)
 
     return {
-        "Next_period": next_period,
         "Ovulation": ovulation,
+        "Ovulation_days": (next_period - ovulation).days,
+        "Next_period": next_period,
+        "period_days": period_length,
         "Free_period": free_period,
+        "Free_period": (free_period - next_period).days,
         "Luteal_phase": luteal,
+        "Luteal_days": (luteal - free_period).days,
+
     }

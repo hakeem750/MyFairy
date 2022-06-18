@@ -5,7 +5,6 @@ from ..model.user import User, Parent
 class UserSerializer(serializers.ModelSerializer):
 
     posts = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
-    # comments = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
 
     class Meta:
         model = User
@@ -33,6 +32,28 @@ class UserSerializer(serializers.ModelSerializer):
         instance.save()
         return instance
 
+
+class UserDetailSerializer(serializers.ModelSerializer):
+
+    posts = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
+
+    class Meta:
+        model = User
+        fields = [
+            "id",
+            "fullname",
+            "email",
+            "password",
+            "code",
+            "phone",
+            "nickname",
+            "dob",
+            "posts",
+        ]
+        extra_kwargs = {
+            "password": {"write_only": True},
+            "code": {"write_only": True},
+        }
 
 class ParentSerializer(serializers.ModelSerializer):
     class Meta:

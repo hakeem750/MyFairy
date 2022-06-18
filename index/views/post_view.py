@@ -14,7 +14,8 @@ from rest_framework import permissions
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect
 from django.shortcuts import get_object_or_404
-
+import json
+import time
 
 class IsOwnerOrReadOnly(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
@@ -28,9 +29,19 @@ class PostList(APIView):
     def post(self, request):
 
         auth_status = Helper(request).is_autheticated()
-        print(auth_status)
         if auth_status["status"]:
             user = User.objects.filter(id=auth_status["payload"]["id"]).first()
+            
+            audio_data = request.FILES.get('audio')
+            if audio_data:
+                
+                audio_id = str(int(time.time()))+"_"+str(auth_status['payload']['id'])
+                modified_data = Helper(request).modify_audio_input(audio_id, audio_data)
+                file_serializer = AudioSerializer(data=modified_data)
+                if file_serializer.is_valid():
+                    file_serializer.save()
+                    request.data["audio"] = json.dumps(file_serializer.data["audio"])
+            
             serializer = PostSerializer(data=request.data)
             if serializer.is_valid():
                 serializer.save(owner=user)
@@ -70,7 +81,7 @@ class PostList(APIView):
 
 class PostDetail(RetrieveUpdateDestroyAPIView):
     queryset = Post.objects.all()
-    serializer_class = PostSerializer
+    serializer_class = PostDetailSerializer
 
 
 class LikeBlog(APIView):
@@ -97,7 +108,7 @@ class LikeBlog(APIView):
                 {
                     "ok": "Your request was successful.",
                 },
-                status=200,
+                status=status.HTTP_200_OK,
             )
         else:
             return Response(
@@ -163,6 +174,16 @@ class CommentList(APIView):
             request.data["post"] = post.id
             user = User.objects.filter(id=auth_status["payload"]["id"]).first()
             serializer = CommentSerializer(data=request.data)
+            audio_data = request.FILES.get('audio')
+            if audio_data:
+                
+                audio_id = str(int(time.time()))+"_"+str(auth_status['payload']['id'])
+                modified_data = Helper(request).modify_audio_input(audio_id, audio_data)
+                file_serializer = AudioSerializer(data=modified_data)
+                if file_serializer.is_valid():
+                    file_serializer.save()
+                    request.data["audio"] = json.dumps(file_serializer.data["audio"])
+                    
             if serializer.is_valid():
                 serializer.save(
                     owner=user,
@@ -189,17 +210,17 @@ class CommentList(APIView):
             )
 
 
-def get(self, request):
-    posts = Post.objects.all()
-    serializer = PostSerializer(posts, many=True)
-    return Response(
-        {
-            "status": True,
-            "message": "Posts fetched successfully",
-            "data": serializer.data,
-        },
-        status=status.HTTP_200_OK,
-    )
+    def get(self, request):
+        posts = Post.objects.all()
+        serializer = PostSerializer(posts, many=True)
+        return Response(
+            {
+                "status": True,
+                "message": "Posts fetched successfully",
+                "data": serializer.data,
+            },
+            status=status.HTTP_200_OK,
+        )
 
 
 # class CommentDetail(generics.RetrieveUpdateDestroyAPIView):

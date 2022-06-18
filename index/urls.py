@@ -20,7 +20,7 @@ urlpatterns = [
     path("categories/", CategoryList.as_view()),
     path("categories/<int:pk>/", CategoryDetail.as_view()),
     path("like/<int:pk>/", LikeBlog.as_view(), name="like"),
-    path("cycle-event/", ListCycleEvent.as_view(), name="list-cycle"),
+    path("cycle-event/", ListEvent.as_view(), name="list-cycle"),
     path("create-cycles/", CreateCycleView.as_view(), name="create-cycle"),
     path("comments/<int:pk>/", CommentList.as_view()),
     # path("comments/<int:pk>/", CommentDetail.as_view()),
