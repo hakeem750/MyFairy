@@ -100,13 +100,19 @@ class LikeBlog(APIView):
 
             if user in post.likes.all():
                 post.likes.remove(user)
+                return Response(
+                {
+                    "status": True, "message": "Post Unliked"
+                },
+                status=status.HTTP_200_OK,
+            )
 
             else:
                 post.likes.add(user)
 
             return Response(
                 {
-                    "ok": "Your request was successful.",
+                    "status": True, "message": "Post liked"
                 },
                 status=status.HTTP_200_OK,
             )
@@ -221,9 +227,3 @@ class CommentList(APIView):
             },
             status=status.HTTP_200_OK,
         )
-
-
-# class CommentDetail(generics.RetrieveUpdateDestroyAPIView):
-#     queryset = Comment.objects.all()
-#     serializer_class = CommentSerializer
-#     permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly]

@@ -7,7 +7,7 @@ from datetime import datetime
 class Post(models.Model):
 
     title = models.CharField(max_length=100, blank=True, default="")
-    body = models.TextField(blank=False, default="")
+    body = models.TextField(blank=True, default="")
     audio = models.JSONField(default=str)
     owner = models.ForeignKey(User, related_name="posts", on_delete=models.CASCADE)
     category = models.CharField(max_length=100, blank=False, default="")
@@ -35,7 +35,7 @@ class Category(models.Model):
 
 class Comment(models.Model):
     
-    body = models.TextField(blank=False)
+    body = models.TextField(blank=True)
     audio = models.JSONField(default=str)
     owner = models.ForeignKey(User, related_name="comments", on_delete=models.CASCADE)
     post = models.ForeignKey(Post, related_name="comments", on_delete=models.CASCADE)

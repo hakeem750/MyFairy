@@ -59,13 +59,12 @@ class RegisterView(APIView):
                 status=status.HTTP_200_OK,
             )
 
-
 class VerifyEmail(APIView):
     def get(self, request):
         token = Helper(request).return_token()
         try:
             payload = token["payload"]
-            user = User.objects.get(id=payload["user_id"]).first()
+            user = User.objects.get(id=payload["user_id"])
             if not user.email_verified:
                 user.email_verified = True
 
@@ -92,6 +91,7 @@ class GetConscent(APIView):
         token = Helper(request).return_token()
         try:
             payload = token["payload"]
+            print(token)
             user = User.objects.get(id=payload["user_id"])
             parent = Parent.objects.filter(user=user).first()
             if not parent.conscent:
@@ -190,9 +190,7 @@ class Login(APIView):
         password = request.data["password"]
         user = User.objects.filter(email=email).first()
         parent = Parent.objects.filter(user=user.id)
-        print(user.id)
         age = Helper.calculate_age(user.dob)
-        print(age)
         if age < 13 and parent.conscent == false:
             return Response(
                 {"status": False, "message": "User is below age and concent is need "},
