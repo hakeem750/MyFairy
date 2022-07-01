@@ -1,5 +1,7 @@
 from rest_framework import serializers
 from ..model.user import User, Parent
+from ..model.post import Post 
+from ..serializers.post_serializer import PostDetailSerializer
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -35,7 +37,7 @@ class UserSerializer(serializers.ModelSerializer):
 
 class UserDetailSerializer(serializers.ModelSerializer):
 
-    posts = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
+    posts = serializers.SerializerMethodField(method_name="get_posts")
 
     class Meta:
         model = User
@@ -54,6 +56,8 @@ class UserDetailSerializer(serializers.ModelSerializer):
             "password": {"write_only": True},
             "code": {"write_only": True},
         }
+    def get_posts(self, obj):
+        return PostDetailSerializer(Post.objects.filter(owner=obj.id), many=True).data
 
 class ParentSerializer(serializers.ModelSerializer):
     class Meta:

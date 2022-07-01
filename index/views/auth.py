@@ -1,7 +1,6 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from django.contrib.auth.hashers import make_password
 from ..helper import Helper
 from ..serializers.user_serializer import *
 from ..model.user import User
@@ -17,7 +16,16 @@ from django.conf import settings
 
 class RegisterView(APIView):
     def post(self, request, *args, **kwargs):
-        serializer = UserSerializer(data=request.data)
+        data = {}
+        data["email"] = request.POST.get('email')
+        data["fullname"] = request.POST.get('fullname')
+        data["code"] = request.POST.get('code')
+        data["phone"] = request.POST.get('phone')
+        data["nickname"] = request.POST.get('nickname')
+        data["dob"] = request.POST.get('dob')
+        data["password"] = request.POST.get('password')
+        #request.data = data
+        serializer = UserSerializer(data=data)
         if serializer.is_valid():
             serializer.save()
             token = Helper(request).get_token(
@@ -120,7 +128,7 @@ class UserDetails(APIView):
         auth_status = Helper(request).is_autheticated()
         if auth_status["status"]:
             user = User.objects.filter(id=auth_status["payload"]["id"]).first()
-            serializers = UserSerializer(user)
+            serializers = UserDetailSerializer(user)
             return Response(
                 {
                     "status": True,
@@ -186,9 +194,15 @@ class ParentEmail(APIView):
 class Login(APIView):
     def post(self, request, *args, **kwargs):
 
-        email = request.data["email"]
-        password = request.data["password"]
+        email = request.POST.get("email")
+        password = request.POST.get("password")
         user = User.objects.filter(email=email).first()
+        
+        if user is None:
+            return Response(
+                {"status": False, "message": "User not Found"},
+                status=status.HTTP_200_OK,
+            )
         parent = Parent.objects.filter(user=user.id)
         age = Helper.calculate_age(user.dob)
         if age < 13 and parent.conscent == false:
@@ -197,11 +211,7 @@ class Login(APIView):
                 status=status.HTTP_200_OK,
             )
 
-        if user is None:
-            return Response(
-                {"status": False, "message": "User not Found"},
-                status=status.HTTP_200_OK,
-            )
+        
         
         if not user.check_password(password):
             return Response(

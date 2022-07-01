@@ -11,7 +11,6 @@ from rest_framework.generics import CreateAPIView, UpdateAPIView
 from django.db import IntegrityError
 
 
-
 class CreateCycleView(APIView):
     def post(self, request):
 
