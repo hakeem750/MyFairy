@@ -1,6 +1,6 @@
 from ..model.post import Post  # , Comment, Category, LikedPost
 from ..model.user import User
-from ..helper import Helper
+from ..helper import Helper, get_data
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.generics import (
@@ -17,6 +17,7 @@ from django.shortcuts import get_object_or_404
 import json
 import time
 
+
 class IsOwnerOrReadOnly(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
         if request.method in permissions.SAFE_METHODS:
@@ -25,13 +26,21 @@ class IsOwnerOrReadOnly(permissions.BasePermission):
         return obj.owner == request.user
 
 
+
+class Feed(APIView):
+    def get(self, request):
+        pass
+
+
 class PostList(APIView):
     def post(self, request):
 
         auth_status = Helper(request).is_autheticated()
         if auth_status["status"]:
             user = User.objects.filter(id=auth_status["payload"]["id"]).first()
-            
+
+            data = get_data(request.POST)
+            serializer = PostSerializer(data=data)
             audio_data = request.FILES.get('audio')
             if audio_data:
                 
@@ -40,9 +49,9 @@ class PostList(APIView):
                 file_serializer = AudioSerializer(data=modified_data)
                 if file_serializer.is_valid():
                     file_serializer.save()
-                    request.data["audio"] = json.dumps(file_serializer.data["audio"])
+                    data["audio"] = json.dumps(file_serializer.data["audio"])
             
-            serializer = PostSerializer(data=request.data)
+            
             if serializer.is_valid():
                 serializer.save(owner=user)
 
@@ -129,7 +138,8 @@ class CategoryList(APIView):
         auth_status = Helper(request).is_autheticated()
         if auth_status["status"]:
             user = User.objects.filter(id=auth_status["payload"]["id"]).first()
-            serializer = CategorySerializer(data=request.data)
+            data = get_data(request.POST)
+            serializer = CategorySerializer(data=data)
             if serializer.is_valid():
                 serializer.save(authur=user)
 
@@ -176,10 +186,10 @@ class CommentList(APIView):
 
         auth_status = Helper(request).is_autheticated()
         if auth_status["status"]:
+            data = get_data(request.POST)
             post = get_object_or_404(Post, pk=pk)
-            request.data["post"] = post.id
+            data["post"] = post.id
             user = User.objects.filter(id=auth_status["payload"]["id"]).first()
-            serializer = CommentSerializer(data=request.data)
             audio_data = request.FILES.get('audio')
             if audio_data:
                 
@@ -188,8 +198,9 @@ class CommentList(APIView):
                 file_serializer = AudioSerializer(data=modified_data)
                 if file_serializer.is_valid():
                     file_serializer.save()
-                    request.data["audio"] = json.dumps(file_serializer.data["audio"])
+                    data["audio"] = json.dumps(file_serializer.data["audio"])
                     
+            serializer = CommentSerializer(data=data)
             if serializer.is_valid():
                 serializer.save(
                     owner=user,

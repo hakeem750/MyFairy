@@ -16,7 +16,7 @@ class Helper:
             payload = jwt.decode(jwt_str, self.secret_key, algorithms=[self.algorithm])
             return {"status": True, "payload": payload}
         except:
-            return {"status": False, "payload": ""}
+            return {"status": False, "payload": None}
 
     def return_token(self):
         try:
@@ -24,7 +24,7 @@ class Helper:
             payload = jwt.decode(jwt_str, self.secret_key, algorithms=[self.algorithm])
             return {"payload": payload}
         except:
-            return {"payload": ""}
+            return {"payload": None}
 
     def get_verify_token(self, user):
         payload = {
@@ -69,6 +69,11 @@ class Helper:
         )
         email.send()
 
+def get_data(post):
+    a = dict(post)
+    data = {}
+    data = {i:a[i][0] for i in a}
+    return data
 
 def date_converter(date_string):
     dates = date_string.split("-")

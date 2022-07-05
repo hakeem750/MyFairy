@@ -47,9 +47,10 @@ class User(AbstractUser):
     code = models.IntegerField(default=0)
     username = None
     nickname = models.CharField(max_length=255)
-    dob = models.DateField(verbose_name="Date of Birth", null=True)
+    dob = models.DateField(verbose_name="Date of Birth")
     email_verified = models.BooleanField(null=True)
     user_verified = models.BooleanField(default=False)
+    prifile_pic = models.ImageField(upload_to='MyFairy/pictures', blank=True, null=True)
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []

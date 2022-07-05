@@ -4,6 +4,7 @@ from ..model.post import Post
 from ..serializers.post_serializer import PostDetailSerializer
 
 
+
 class UserSerializer(serializers.ModelSerializer):
 
     posts = serializers.PrimaryKeyRelatedField(many=True, read_only=True)

@@ -26,7 +26,7 @@ class Post(models.Model):
 
 class Category(models.Model):
     authur = models.ForeignKey(User, related_name="catgory", on_delete=models.CASCADE)
-    name = models.CharField(max_length=100, blank=False, default="")
+    name = models.CharField(max_length=100, blank=False, default="", unique=True)
     models.CharField(max_length=255)
 
     class Meta:
