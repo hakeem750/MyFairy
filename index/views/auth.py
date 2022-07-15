@@ -96,6 +96,7 @@ class VerifyEmail(APIView):
 class GetConsent(APIView):
     def get(self, request):
         token = Helper(request).return_token()
+        print(token)
         try:
             payload = token["payload"]
             user = User.objects.get(id=payload["user_id"])
@@ -166,7 +167,7 @@ class ParentEmail(APIView):
                     "Hi "
                     + user.fullname
                     + " guardian/parent \n"
-                    + "Use the link below to consent fro your ward to use this platform \n"
+                    + "Use the link below to consent for your ward to use this platform \n"
                     + url
                 )
                 data = {
@@ -253,7 +254,7 @@ class Login(APIView):
                 status=status.HTTP_200_OK,
             )
 
-        if age < 13 and parent.consent == false:
+        if age < 13 and parent.conscent == false:
             return Response(
                 {"status": False, "message": "User is below age and concent is needed"},
                 status=status.HTTP_200_OK,
