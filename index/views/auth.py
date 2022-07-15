@@ -254,7 +254,7 @@ class Login(APIView):
                 status=status.HTTP_200_OK,
             )
 
-        if age < 13 and parent.conscent == false:
+        if age < 13 and parent.conscent == False:
             return Response(
                 {"status": False, "message": "User is below age and concent is needed"},
                 status=status.HTTP_200_OK,
