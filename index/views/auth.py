@@ -245,7 +245,7 @@ class Login(APIView):
                 status=status.HTTP_200_OK,
             )
 
-        parent = Parent.objects.filter(user=user.id)
+        parent = Parent.objects.filter(user=user.id).first()
         age = Helper.calculate_age(user.dob)
 
         if age < 13 and parent is None:
