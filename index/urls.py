@@ -14,7 +14,7 @@ urlpatterns = [
     path("verify-password", VerifyForgotPasswordView.as_view()),
     path("verify-email", VerifyEmail.as_view(), name="verify-email"),
     path("parent-email", ParentEmail.as_view()),
-    path("get-conscent", GetConscent.as_view(), name="get-parent-conscent"),
+    path("get-conscent", GetConsent.as_view(), name="get-parent-consent"),
     path("posts/", PostList.as_view()),
     path("posts/<int:pk>/", PostDetail.as_view()),
     path("categories/", CategoryList.as_view()),

@@ -20,7 +20,7 @@ class Helper:
 
     def return_token(self):
         try:
-            jwt_str = self.request.headers.get("Authorization")
+            jwt_str = self.request.query_params.get('token')##self.request.headers.get("Authorization")
             payload = jwt.decode(jwt_str, self.secret_key, algorithms=[self.algorithm])
             return {"payload": payload}
         except:

@@ -93,7 +93,7 @@ class VerifyEmail(APIView):
             )
 
 
-class GetConscent(APIView):
+class GetConsent(APIView):
     def get(self, request):
         token = Helper(request).return_token()
         try:
@@ -104,7 +104,7 @@ class GetConscent(APIView):
                 parent.conscent = True
 
             return Response(
-                {"status": True, "parent": "parent conscent successfully"},
+                {"status": True, "parent": "parent consent successfully"},
                 status=status.HTTP_200_OK,
             )
 
@@ -159,18 +159,18 @@ class ParentEmail(APIView):
                 site = get_current_site(request).domain
                 access_token = Helper(request).get_verify_token(user)
 
-                link = reverse("get-parent-conscent")
+                link = reverse("get-parent-consent")
 
                 url = "http://" + site + link + "?token=" + str(access_token)
                 body = (
                     "Hi "
                     + user.fullname
                     + " guardian/parent \n"
-                    + "Use the link below to conscent fro your ward to use this platform \n"
+                    + "Use the link below to consent fro your ward to use this platform \n"
                     + url
                 )
                 data = {
-                    "subject": "Parent Conscent",
+                    "subject": "Parent Consent",
                     "body": body,
                     "user_email": serializer.data["email"],
                 }
@@ -179,8 +179,8 @@ class ParentEmail(APIView):
                 return Response(
                     {
                         "status": True,
-                        "message": "Conscent email sent to parent",
-                        "data": serializer.data,
+                        "message": "Consent email sent to parent",
+                        "url": url,
                     },
                     status=status.HTTP_201_CREATED,
                 )
@@ -193,6 +193,41 @@ class ParentEmail(APIView):
             return Response(
                 {"status": False, "message": serializer.errors},
                 status=status.HTTP_200_OK,
+            )
+
+
+class GetParentConsent(APIView):
+    def get(self, request):
+        token = Helper(request).return_token()
+        try:
+            payload = token["payload"]
+            if payload is None:
+                 return Response(
+                {"status": False, "message": "Consent expired, try again"},
+                status=status.HTTP_200_OK,
+            )
+            user = User.objects.get(id=payload["user_id"])
+            parent = Parent.objects.filter(user=user.id)
+
+            if not parent.consent:
+                parent.consent = True
+
+            return Response(
+                {"status": True, 
+                 "email": "E-mail verified successfully"},
+                status=status.HTTP_200_OK,
+            )
+
+        except jwt.ExpiredSignatureError as e:
+
+            return Response(
+                {"status": False, "error": "Activation expired"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+        except jwt.exceptions.DecodeError as e:
+            return Response(
+                {"status": False, "error": "Invalid token"},
+                status=status.HTTP_404_NOT_FOUND,
             )
 
 
@@ -218,7 +253,7 @@ class Login(APIView):
                 status=status.HTTP_200_OK,
             )
 
-        if age < 13 and parent.conscent == false:
+        if age < 13 and parent.consent == false:
             return Response(
                 {"status": False, "message": "User is below age and concent is needed"},
                 status=status.HTTP_200_OK,

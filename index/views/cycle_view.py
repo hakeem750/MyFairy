@@ -11,6 +11,7 @@ from rest_framework.generics import CreateAPIView, UpdateAPIView
 from django.db import IntegrityError
 
 
+
 class CreateCycleView(APIView):
     def post(self, request):
 
@@ -20,11 +21,6 @@ class CreateCycleView(APIView):
             user_data = request.data
             print(user_data)
             serializer = MenstrualCycleSerializer(data=user_data)
-            # last_period_date = user_data.get("Last_period_date", "")
-            # cycle_length = user_data.get("Cycle_length", "")
-            # period_length = user_data.get("Period_length", "")
-            # period_flow = user_data.get("period_flow", "")
-
 
             if serializer.is_valid():
                 serializer.save(owner=user)
