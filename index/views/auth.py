@@ -213,6 +213,7 @@ class GetParentConsent(APIView):
             if not parent.consent:
                 parent.consent = True
                 parent.save()
+                
 
             return Response(
                 {"status": True, 
