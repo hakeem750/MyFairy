@@ -103,6 +103,7 @@ class GetConsent(APIView):
             parent = Parent.objects.filter(user=user).first()
             if not parent.conscent:
                 parent.conscent = True
+                parent.save()
 
             return Response(
                 {"status": True, "parent": "parent consent successfully"},
@@ -194,43 +195,6 @@ class ParentEmail(APIView):
             return Response(
                 {"status": False, "message": "Unathorised"},
                 status=status.HTTP_200_OK,
-            )
-
-
-class GetParentConsent(APIView):
-    def get(self, request):
-        token = Helper(request).return_token()
-        try:
-            payload = token["payload"]
-            if payload is None:
-                 return Response(
-                {"status": False, "message": "Consent expired, try again"},
-                status=status.HTTP_200_OK,
-            )
-            user = User.objects.get(id=payload["user_id"])
-            parent = Parent.objects.filter(user=user.id)
-
-            if not parent.consent:
-                parent.consent = True
-                parent.save()
-                
-
-            return Response(
-                {"status": True, 
-                 "email": "E-mail verified successfully"},
-                status=status.HTTP_200_OK,
-            )
-
-        except jwt.ExpiredSignatureError as e:
-
-            return Response(
-                {"status": False, "error": "Activation expired"},
-                status=status.HTTP_404_NOT_FOUND,
-            )
-        except jwt.exceptions.DecodeError as e:
-            return Response(
-                {"status": False, "error": "Invalid token"},
-                status=status.HTTP_404_NOT_FOUND,
             )
 
 
