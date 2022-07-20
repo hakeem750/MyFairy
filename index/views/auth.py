@@ -192,7 +192,7 @@ class ParentEmail(APIView):
                 )
         else:
             return Response(
-                {"status": False, "message": serializer.errors},
+                {"status": False, "message": "Unathorised"},
                 status=status.HTTP_200_OK,
             )
 
