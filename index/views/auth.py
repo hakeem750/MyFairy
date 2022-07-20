@@ -96,7 +96,7 @@ class VerifyEmail(APIView):
 class GetConsent(APIView):
     def get(self, request):
         token = Helper(request).return_token()
-        print(token)
+        #print(token)
         try:
             payload = token["payload"]
             user = User.objects.get(id=payload["user_id"])
@@ -166,7 +166,7 @@ class ParentEmail(APIView):
                 body = (
                     "Hi "
                     + user.fullname
-                    + " guardian/parent \n"
+                    + " Guardian/Parent \n"
                     + "Use the link below to consent for your ward to use this platform \n"
                     + url
                 )
@@ -212,6 +212,7 @@ class GetParentConsent(APIView):
 
             if not parent.consent:
                 parent.consent = True
+                parent.save()
 
             return Response(
                 {"status": True, 
