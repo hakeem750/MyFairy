@@ -244,7 +244,7 @@ class Login(APIView):
                 {"status": False, "message": "User not Found Invalid email or password"},
                 status=status.HTTP_200_OK,
             )
-
+        token = Helper(request).get_token(user.id, user.nickname)
         parent = Parent.objects.filter(user=user.id).first()
         age = Helper.calculate_age(user.dob)
 
@@ -256,7 +256,10 @@ class Login(APIView):
 
         if age < 13 and parent.conscent == False:
             return Response(
-                {"status": False, "message": "User is below age and concent is needed"},
+                {"status": False, 
+                 "message": "User is below age and concent is needed",
+                 "token": token
+                 },
                 status=status.HTTP_200_OK,
             )
 
@@ -268,7 +271,7 @@ class Login(APIView):
                 status=status.HTTP_200_OK,
             )
 
-        token = Helper(request).get_token(user.id, user.nickname)
+        
         serializers = UserSerializer(user)
         return Response(
             {
