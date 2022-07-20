@@ -74,6 +74,7 @@ class VerifyEmail(APIView):
             user = User.objects.get(id=payload["user_id"])
             if not user.email_verified:
                 user.email_verified = True
+                user.save()
 
             return Response(
                 {"status": True, "email": "E-mail verified successfully"},
