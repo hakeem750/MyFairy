@@ -121,7 +121,7 @@ class ListEvent(APIView):
                 return Response(
                 {"status": False,
                  "message": "You need to create a cycle first",
-                 "Events": []},
+                 "Events": None},
                 status=status.HTTP_200_OK,
             )
             serializer = MenstrualCycleSerializer(user_data)
