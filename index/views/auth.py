@@ -125,28 +125,48 @@ class GetConsent(APIView):
 
 
 class UserDetails(APIView):
-    def get(self, request):
-        auth_status = Helper(request).is_autheticated()
-        if auth_status["status"]:
-            user = User.objects.filter(id=auth_status["payload"]["id"]).first()
-            serializers = UserDetailSerializer(user)
-            return Response(
-                {
-                    "status": True,
-                    "message": "User Feteched Successfully",
-                    "data": serializers.data,
-                },
-                status=status.HTTP_200_OK,
-            )
-        else:
-            return Response(
-                {"status": False, "message": "Unathorised"}, status=status.HTTP_200_OK
-            )
+    def get(self, request, pk):
+        
+        user = User.objects.get(id=pk)
+        serializers = UserDetailSerializer(user)
+        return Response(
+            {
+                "status": True,
+                "message": "User Feteched Successfully",
+                "data": serializers.data,
+            },
+            status=status.HTTP_200_OK,
+        )
 
     def put(self, request, pk):
-        user = get_object_or_404(User, pk=pk)
-        pass
 
+        data = get_data(request.POST)
+        user = User.objects.get(pk=pk)
+        serializers = UserDetailSerializer(user, data=data, partial=True)
+
+        if serializer.is_valid():
+            serializer.save()
+
+
+            return Response(
+                    {
+                        "status": True,
+                        "message": "data updated successfully",
+                        "data": serializers.data,
+                    },
+                    status=status.HTTP_200_OK,
+                )
+        else:
+            return Response(
+                {"status": False, "message": serializer.errors},
+                status=status.HTTP_200_OK,
+            )
+
+     def delete(self, request, pk):
+
+        user = User.objects.get(id=pk)
+        user.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 class ParentEmail(APIView):
     def post(self, request, *args, **kwargs):
