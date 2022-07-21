@@ -19,7 +19,6 @@ class CreateCycleView(APIView):
         if auth_status["status"]:
             user = User.objects.filter(id=auth_status["payload"]["id"]).first()
             user_data = request.data
-            print(user_data)
             serializer = MenstrualCycleSerializer(data=user_data)
 
             if serializer.is_valid():
@@ -116,7 +115,15 @@ class ListEvent(APIView):
         auth_status = Helper(request).is_autheticated()
         if auth_status["status"]:
             user = User.objects.filter(id=auth_status["payload"]["id"]).first()
-            user_data = MenstrualCycle.objects.filter(owner=user).first()
+            user_data = MenstrualCycle.objects.filter(owner=user).last()
+
+            if user_data is None:
+                return Response(
+                {"status": False,
+                 "message": "You need to create a cycle first",
+                 "Events": []},
+                status=status.HTTP_200_OK,
+            )
             serializer = MenstrualCycleSerializer(user_data)
             Last_period_date = user_data.Last_period_date#serializer.data.get("Last_period_date", "")
             Cycle_length = serializer.data.get("Cycle_length", "")
