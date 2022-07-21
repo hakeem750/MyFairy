@@ -162,7 +162,7 @@ class UserDetails(APIView):
                 status=status.HTTP_200_OK,
             )
 
-     def delete(self, request, pk):
+    def delete(self, request, pk):
 
         user = User.objects.get(id=pk)
         user.delete()
