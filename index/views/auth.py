@@ -142,7 +142,7 @@ class UserDetails(APIView):
 
         data = get_data(request.POST)
         user = User.objects.get(pk=pk)
-        serializers = UserDetailSerializer(user, data=data, partial=True)
+        serializer = UserDetailSerializer(user, data=data, partial=True)
 
         if serializer.is_valid():
             serializer.save()
@@ -152,7 +152,7 @@ class UserDetails(APIView):
                     {
                         "status": True,
                         "message": "data updated successfully",
-                        "data": serializers.data,
+                        "data": serializer.data,
                     },
                     status=status.HTTP_200_OK,
                 )
