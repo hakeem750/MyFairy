@@ -63,7 +63,7 @@ class User(AbstractUser):
         if self.profile_pic and hasattr(self.profile_pic, 'url'):
             return self.profile_pic.url
         else:
-            return None
+            return "pictures/default.jpg"
 
 
 class Parent(models.Model):
