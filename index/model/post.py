@@ -3,7 +3,6 @@ from ..model.user import User
 from django.utils.translation import gettext_lazy as _
 from datetime import datetime
 
-
 class Post(models.Model):
 
     title = models.CharField(max_length=100, blank=True, default="")
@@ -12,13 +11,12 @@ class Post(models.Model):
     owner = models.ForeignKey(User, related_name="posts", on_delete=models.CASCADE)
     category = models.CharField(max_length=100, blank=False, default="")
     created = models.DateTimeField(auto_now_add=True)
-    #comments = models.ForeignKey(Comment, related_name="posts_comment", on_delete=models.CASCADE)
     likes = models.ManyToManyField(
-        User,
-        blank=True,
-        related_name="blogs_like",
-        verbose_name=_("Likes"),
-    )
+                                    User,
+                                    blank=True,
+                                    related_name="blogs_like",
+                                    verbose_name=_("Likes"),
+                                )
 
     class Meta:
         ordering = ["created"]
@@ -46,7 +44,7 @@ class Comment(models.Model):
 
 class Audio(models.Model):
     audio_id = models.CharField(max_length=150)
-    audio = models.FileField(upload_to="MyFairy/assets/")
+    audio = models.FileField(upload_to="myfairy/assets/")
 
 
 

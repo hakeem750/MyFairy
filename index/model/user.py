@@ -50,12 +50,20 @@ class User(AbstractUser):
     dob = models.DateField(verbose_name="Date of Birth")
     email_verified = models.BooleanField(null=True)
     user_verified = models.BooleanField(default=False)
-    prifile_pic = models.ImageField(upload_to='MyFairy/pictures', blank=True, null=True)
+    profile_pic = models.ImageField(blank=True, null=True)
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []
 
     objects = UserManager()
+
+    @property
+    def profile_pic_url(self):
+
+        if self.profile_pic and hasattr(self.profile_pic, 'url'):
+            return self.profile_pic.url
+        else:
+            return None
 
 
 class Parent(models.Model):

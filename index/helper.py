@@ -210,23 +210,31 @@ def cycle_event_analyst(
 
 def cycle_events(last_period, cycle_length, period_length):
 
-    cycle_avg = math.floor(cycle_length / 2)
-    ovulation = last_period + timedelta(days=cycle_avg)
-
+    mid = math.floor(cycle_length / 2)
+    
     next_period = last_period + timedelta(days=cycle_length)
+    period_end = next_period + timedelta(days=period_length)
+    ovulation = next_period + timedelta(days=mid)
+    ovulation_end = ovulation + timedelta(days=1)
+    free_period = period_end + timedelta(days=1)
+    luteal = ovulation_end + timedelta(days=1)
 
-    free_period = next_period + timedelta(days=period_length)
-
-    luteal = free_period + timedelta(days=period_length)
+    Free_period_days = (ovulation - free_period).days
+    Ovulation_days = (ovulation_end - ovulation).days
 
     return {
-        "Ovulation": ovulation,
-        "Ovulation_days": (next_period - ovulation).days,
         "Next_period": next_period,
         "period_days": period_length,
+
         "Free_period": free_period,
-        "Free_period": (free_period - next_period).days,
+        "Free_period_days": Free_period_days,
+
+        "Ovulation": ovulation,
+        "Ovulation_days": Ovulation_days,
+        
         "Luteal_phase": luteal,
-        "Luteal_days": (luteal - free_period).days,
+        "Luteal_days": cycle_length - (period_length + Free_period_days + Ovulation_days),
+
+        "Last_period_date": last_period
 
     }

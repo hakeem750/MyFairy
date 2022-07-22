@@ -13,6 +13,7 @@ import jwt
 import os
 from django.conf import settings
 
+from django.shortcuts import render
 
 
 class RegisterView(APIView):
@@ -67,19 +68,14 @@ class VerifyEmail(APIView):
         try:
             payload = token["payload"]
             if payload is None:
-                 return Response(
-                {"status": False, "message": "Activation expired, try again"},
-                status=status.HTTP_200_OK,
-            )
+                 return render(request, 'try-again.html', {})
+
             user = User.objects.get(id=payload["user_id"])
             if not user.email_verified:
                 user.email_verified = True
                 user.save()
 
-            return Response(
-                {"status": True, "email": "E-mail verified successfully"},
-                status=status.HTTP_200_OK,
-            )
+                return render(request, 'verify.html', {})
 
         except jwt.ExpiredSignatureError as e:
 
@@ -106,22 +102,17 @@ class GetConsent(APIView):
                 parent.conscent = True
                 parent.save()
 
-            return Response(
-                {"status": True, "parent": "parent consent successfully"},
-                status=status.HTTP_200_OK,
-            )
+            return render(request, 'consent.html', {})
 
         except jwt.ExpiredSignatureError as e:
 
-            return Response(
-                {"status": False, "error": "Activation expired"},
-                status=status.HTTP_404_NOT_FOUND,
-            )
+            return render(request, 'try-consent.html', {})
+
         except jwt.exceptions.DecodeError as e:
-            return Response(
-                {"status": False, "error": "Invalid token"},
-                status=status.HTTP_404_NOT_FOUND,
-            )
+            return render(request, 'try-consent.html', {})
+
+        except Exception as e:
+            return render(request, 'try-consent.html', {})
 
 
 class UserDetails(APIView):
@@ -141,8 +132,9 @@ class UserDetails(APIView):
     def put(self, request, pk):
 
         data = get_data(request.POST)
+        data["profile_pic"] = request.FILES.get('profile_pic')
         user = User.objects.get(pk=pk)
-        serializer = UserDetailSerializer(user, data=data, partial=True)
+        serializer = UserSerializer(user, data=data, partial=True)
 
         if serializer.is_valid():
             serializer.save()

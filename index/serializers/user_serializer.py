@@ -20,7 +20,9 @@ class UserSerializer(serializers.ModelSerializer):
             "phone",
             "nickname",
             "dob",
+            "profile_pic",
             "posts",
+            
         ]
         extra_kwargs = {
             "password": {"write_only": True},
@@ -34,6 +36,7 @@ class UserSerializer(serializers.ModelSerializer):
             instance.set_password(password)
         instance.save()
         return instance
+
 
 
 class UserDetailSerializer(serializers.ModelSerializer):
@@ -51,16 +54,24 @@ class UserDetailSerializer(serializers.ModelSerializer):
             "phone",
             "nickname",
             "dob",
+            "profile_pic_url",
             "posts",
+            
+
         ]
+
         extra_kwargs = {
             "password": {"write_only": True},
             "code": {"write_only": True},
         }
+        
     def get_posts(self, obj):
         return PostDetailSerializer(Post.objects.filter(owner=obj.id), many=True).data
+
 
 class ParentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Parent
-        fields = ["email"]
+        fields = [
+                    "email",
+                ]

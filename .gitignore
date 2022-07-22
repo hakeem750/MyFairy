@@ -8,4 +8,5 @@ env.bak/
 venv.bak/
 
 
-*.pyc
+*index/.pyc
+*src/.pyc
