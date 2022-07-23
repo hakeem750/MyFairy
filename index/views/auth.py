@@ -5,6 +5,7 @@ from ..helper import Helper, get_data
 from ..serializers.user_serializer import *
 from ..model.user import User
 from rest_framework_simplejwt.tokens import RefreshToken
+from django.contrib.auth.hashers import make_password
 from django.contrib.sites.shortcuts import get_current_site
 from django.shortcuts import get_object_or_404
 from django.urls import reverse
@@ -299,7 +300,7 @@ class ForgotPasswordView(APIView):
         body = (
             "Hi "
             + user.fullname
-            + " enter this code reset your password \n"
+            + " enter this code to reset your password \n"
             + str(random_number)
         )
         data = {
@@ -310,14 +311,15 @@ class ForgotPasswordView(APIView):
         Helper.send_email(data)
         user.code = random_number
         user.save()
-        return Response({"status": True, "message": "success, your code has been sent"})
+        return Response({"status": True, "message": "success, your code has been sent"},
+                status=status.HTTP_200_OK)
 
 
 class VerifyForgotPasswordView(APIView):
     def post(self, request, *args, **kwargs):
 
         email = request.POST.get('email')
-        code = request.POST.get('code')
+        code = int(request.POST.get('code'))
         user = User.objects.filter(email=email).first()
 
         if user is None:
@@ -331,8 +333,27 @@ class VerifyForgotPasswordView(APIView):
                 status=status.HTTP_200_OK,
             )
 
-        user.password = make_password(request.data["password"])
+        return Response(
+            {"status": True, "message": "success"},
+                status=status.HTTP_200_OK
+        )
+
+class EnterPasswordView(APIView):
+    def post(self, request, *args, **kwargs):
+
+        email = request.POST.get('email')
+        password = request.POST.get('password')
+        user = User.objects.filter(email=email).first()
+
+        if user is None:
+            return Response(
+                {"status": False, "message": "User not Found"},
+                status=status.HTTP_200_OK,
+            )
+
+        user.password = make_password(password)
         user.save()
         return Response(
-            {"status": True, "message": "success, password has been reset successfully"}
+            {"status": True, "message": "success, password has been reset successfully"},
+                status=status.HTTP_200_OK
         )

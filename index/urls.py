@@ -12,6 +12,7 @@ urlpatterns = [
     path("login", Login.as_view()),
     path("forgot-password", ForgotPasswordView.as_view()),
     path("verify-password", VerifyForgotPasswordView.as_view()),
+    path("enter-password", EnterPasswordView.as_view()),
     path("verify-email", VerifyEmail.as_view(), name="verify-email"),
     path("parent-email", ParentEmail.as_view()),
     path("get-conscent", GetConsent.as_view(), name="get-parent-consent"),
