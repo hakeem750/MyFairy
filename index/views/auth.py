@@ -13,8 +13,8 @@ import random
 import jwt
 import os
 from django.conf import settings
-
 from django.shortcuts import render
+from django.http import Http404
 
 
 class RegisterView(APIView):
@@ -90,7 +90,6 @@ class VerifyEmail(APIView):
                 status=status.HTTP_404_NOT_FOUND,
             )
 
-
 class GetConsent(APIView):
     def get(self, request):
         token = Helper(request).return_token()
@@ -115,11 +114,21 @@ class GetConsent(APIView):
         except Exception as e:
             return render(request, 'try-consent.html', {})
 
-
 class UserDetails(APIView):
     def get(self, request, pk):
-        
-        user = User.objects.get(id=pk)
+
+        try :
+
+            user = User.objects.get(pk=pk)
+            
+        except User.DoesNotExist:
+            return Response(
+                    {
+                        "status": False,
+                        "message": "User not found",
+                    },
+                    status=status.HTTP_200_OK,
+                )
         serializers = UserDetailSerializer(user)
         return Response(
             {
@@ -134,7 +143,20 @@ class UserDetails(APIView):
 
         data = get_data(request.POST)
         data["profile_pic"] = request.FILES.get('profile_pic')
-        user = User.objects.get(pk=pk)
+
+        try :
+
+            user = User.objects.get(pk=pk)
+
+        except User.DoesNotExist:
+            return Response(
+                    {
+                        "status": False,
+                        "message": "User not found",
+                    },
+                    status=status.HTTP_200_OK,
+                )
+
         serializer = UserSerializer(user, data=data, partial=True)
 
         if serializer.is_valid():
@@ -164,9 +186,9 @@ class UserDetails(APIView):
 class ParentEmail(APIView):
     def post(self, request, *args, **kwargs):
 
-        auth_status = Helper(request).is_autheticated()
-        if auth_status["status"]:
-            user = User.objects.filter(id=auth_status["payload"]["id"]).first()
+        auth = Helper(request).is_autheticated()
+        if auth["status"]:
+            user = User.objects.filter(id=auth["payload"]["id"]).first()
             data = {}
             data["email"] = request.POST.get('email')
             serializer = ParentSerializer(data=data)
@@ -210,7 +232,6 @@ class ParentEmail(APIView):
                 {"status": False, "message": "Unathorised"},
                 status=status.HTTP_200_OK,
             )
-
 
 class Login(APIView):
     def post(self, request, *args, **kwargs):
@@ -262,7 +283,6 @@ class Login(APIView):
             }
         )
 
-
 class VerifyCode(APIView):
     def post(self, request, *args, **kwargs):
 
@@ -283,7 +303,6 @@ class VerifyCode(APIView):
             user.phone_verified = True
             user.save()
         return Response({"status": True, "message": "success"})
-
 
 class ForgotPasswordView(APIView):
     def post(self, request, *args, **kwargs):
@@ -313,7 +332,6 @@ class ForgotPasswordView(APIView):
         user.save()
         return Response({"status": True, "message": "success, your code has been sent"},
                 status=status.HTTP_200_OK)
-
 
 class VerifyForgotPasswordView(APIView):
     def post(self, request, *args, **kwargs):
@@ -357,3 +375,172 @@ class EnterPasswordView(APIView):
             {"status": True, "message": "success, password has been reset successfully"},
                 status=status.HTTP_200_OK
         )
+
+class FollowUnfollowView(APIView):
+    
+    def my_profile(self, pk):
+        try:
+
+            return Profile.objects.get(user=pk)
+        except Profile.DoesNotExist:
+            raise Http404
+        
+    def other_profile(self, pk):
+        try:
+            return Profile.objects.get(id=pk)
+        except Profile.DoesNotExist:
+            raise Http404
+    
+    def post(self, request, format=None): 
+        auth = Helper(request).is_autheticated()
+
+        if auth["status"]:
+            data = get_data(request.POST)
+            pk = data.get('id')              # Here pk is opposite user's profile ID
+            req_type = data.get('type')
+
+            ### types to get
+            # follow
+            # accept
+            # decline
+            # unfollow
+            # remove
+                    
+            
+            current_profile = self.my_profile(auth["payload"]["id"])
+            other_profile = self.other_profile(pk)
+                    
+            
+            if req_type == 'follow':
+                if other_profile.private_account:
+                    other_profile.pending_request.add(current_profile)
+                    return Response({
+                        "status": True,
+                        "message" : "Follow request has been send!!"
+                        },
+                        status=status.HTTP_200_OK)
+                else:
+                    if other_profile.blocked_user.filter(id=current_profile.id).exists():
+                        return Response({
+                            "status": False,
+                            "message" : "You can not follow this profile becuase your ID blocked by this user!!"
+                            },
+                            status=status.HTTP_400_BAD_REQUEST)
+
+                    current_profile.following.add(other_profile)
+                    other_profile.followers.add(current_profile)
+
+                    return Response({
+                        "status":True, 
+                        "message" : "Following successfully!!"
+                        },
+                        status=status.HTTP_200_OK) 
+            
+            elif req_type == 'accept':
+
+                current_profile.followers.add(other_profile)
+                other_profile.following.add(current_profile)
+                current_profile.pending_request.remove(other_profile)
+
+                return Response({
+                    "status":True, 
+                    "Accepted" : "Follow request successfuly accespted!!"
+                    },
+                    status=status.HTTP_200_OK)
+            
+            elif req_type == 'decline':
+
+                current_profile.pending_request.remove(other_profile)
+                return Response({
+                    "status":True, 
+                    "message":"Follow request successfully declined!!"
+                    },
+                    status=status.HTTP_200_OK)
+            
+            elif req_type == 'unfollow':
+
+                current_profile.following.remove(other_profile)
+                other_profile.followers.remove(current_profile)
+                return Response({
+                    "status":True, 
+                    "Unfollow" : "Unfollow success!!"
+                    },
+                    status=status.HTTP_200_OK)
+                
+            elif req_type == 'remove':     # You can remove your follower
+                current_profile.followers.remove(other_profile)
+                other_profile.following.remove(current_profile)
+                return Response({
+                    "status":True,
+                    "Remove Success" : "Successfuly removed your follower!!"
+                    },
+                    status=status.HTTP_200_OK)
+        else:
+            return Response(
+                {
+                "status": False, 
+                "message": "Unathorised"
+                },
+                status=status.HTTP_200_OK,
+            )
+
+# Here we can fetch followers, following detail and blocked user, pending request, sended request.. 
+
+    def patch(self, request, format=None):
+    
+        req_type = request.data.POST.get('type')
+    
+        if req_type == 'follow_detail':
+            serializer = FollowerSerializer(self.current_profile())
+            return Response({"data" : serializer.data},status=status.HTTP_200_OK)
+    
+        elif req_type == 'block_pending':
+            serializer = BlockPendinSerializer(self.current_profile())
+            pf = list(Profile.objects.filter(pending_request = self.current_profile().id).values('id','user__nickname','profile_pic'))
+            return Response({"data" : serializer.data,"Sended Request" :pf},status=status.HTTP_200_OK)
+
+# You can block and unblock user
+
+    def put(self, request):
+
+        auth = Helper(request).is_autheticated()
+
+        if auth["status"]:
+            data = get_data(request.POST)
+            pk = data.get('id')              # Here pk is oppisite user's profile ID
+            req_type = data.get('type')
+    
+        if req_type == 'block':
+            self.current_profile().blocked_user.add(self.other_profile(pk))
+            return Response({
+                "status":True,
+                "Blocked" : "This user blocked successfuly"
+                },
+                status=status.HTTP_200_OK)
+        elif req_type == 'unblock':
+            self.current_profile().blocked_user.remove(self.other_profile(pk))
+            return Response({"Unblocked" : "This user unblocked successfuly"},status=status.HTTP_200_OK)
+
+    def get(self, request):
+
+        auth = Helper(request).is_autheticated()
+
+        if auth["status"]:
+            serializer = FollowerSerializer(Profile.objects.filter(user=auth["payload"]["id"])[0])
+
+            return Response(
+            {
+                "status": True,
+                "message": "Followers Feteched Successfully",
+                "data": serializer.data,
+            },
+            status=status.HTTP_200_OK,
+        )
+        else:
+            return Response(
+                {
+                "status": False, 
+                "message": "Unathorised"
+                },
+                status=status.HTTP_200_OK,
+            )

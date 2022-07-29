@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from ..model.user import User, Parent
+from ..model.user import *
 from ..model.post import Post 
 from ..serializers.post_serializer import PostDetailSerializer
 
@@ -37,8 +37,6 @@ class UserSerializer(serializers.ModelSerializer):
         instance.save()
         return instance
 
-
-
 class UserDetailSerializer(serializers.ModelSerializer):
 
     posts = serializers.SerializerMethodField(method_name="get_posts")
@@ -68,6 +66,35 @@ class UserDetailSerializer(serializers.ModelSerializer):
     def get_posts(self, obj):
         return PostDetailSerializer(Post.objects.filter(owner=obj.id), many=True).data
 
+class EachUserSerializer(serializers.ModelSerializer):
+    nickname = serializers.CharField(source='user.nickname')
+    profile_pic = serializers.SerializerMethodField(method_name="get_profile_pic")
+
+    class Meta:
+        model = Profile
+        fields = ('id','nickname','profile_pic')
+        read_only_fields = ('id','username','profile_pic')
+
+    def get_profile_pic(self, obj):
+        return obj.user.profile_pic_url
+
+class FollowerSerializer(serializers.ModelSerializer):
+    followers = EachUserSerializer(many=True, read_only=True)
+    following = EachUserSerializer(many=True, read_only=True)
+    
+    class Meta:
+        model = Profile
+        fields = ('followers','following')
+        read_only_fields = ('followers','following')
+
+class BlockPendinSerializer(serializers.ModelSerializer):
+    panding_request = EachUserSerializer(many=True, read_only=True)
+    blocked_user = EachUserSerializer(many=True,read_only=True)
+
+    class Meta:
+        model = Profile
+        fields = ('panding_request','blocked_user')  
+        read_only_fields = ('panding_request','blocked_user')
 
 class ParentSerializer(serializers.ModelSerializer):
     class Meta:

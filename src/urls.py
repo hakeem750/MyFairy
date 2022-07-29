@@ -9,6 +9,7 @@ schema_view = get_swagger_view(title="MyFairy API")
 urlpatterns = [
     path('', schema_view),
     path('admin/', admin.site.urls),
+    path('chat/', include('index.chat.urls', namespace='chat')),
     path('api/', include("index.urls")),
 ]
 

@@ -10,21 +10,9 @@ from rest_framework.generics import (
 )
 from rest_framework import status
 from ..serializers.post_serializer import *
-from rest_framework import permissions
-from django.contrib.auth.decorators import login_required
-from django.shortcuts import redirect
-from django.shortcuts import get_object_or_404
+from django.shortcuts import redirect, get_object_or_404
 import json
 import time
-
-
-class IsOwnerOrReadOnly(permissions.BasePermission):
-    def has_object_permission(self, request, view, obj):
-        if request.method in permissions.SAFE_METHODS:
-            return True
-
-        return obj.owner == request.user
-
 
 
 class Feed(APIView):
