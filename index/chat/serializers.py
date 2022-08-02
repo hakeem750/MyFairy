@@ -42,6 +42,10 @@ class ChatSerializer(serializers.ModelSerializer):
         return chat
 
     def get_last_message(self, obj):
+
+        if len(list(obj.messages.all())) < 1:
+            
+            return []
         return ChatMessageSerializer(list(obj.messages.all())[-1]).data
 
 
