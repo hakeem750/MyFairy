@@ -8,7 +8,7 @@ class Contact(models.Model):
     friends = models.ManyToManyField('self', blank=True)
 
     def __str__(self):
-        return self.user.nickname
+        return self.user.fullname
 
 
 class Message(models.Model):
@@ -25,7 +25,7 @@ class Chat(models.Model):
     messages = models.ManyToManyField(Message, blank=True)
 
     def __str__(self):
-        return "{}".format(self.pk)
+        return f"{self.pk}"
 
 
 def user_post_save(sender, instance, *arg, **kwargs):
