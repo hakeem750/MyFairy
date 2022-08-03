@@ -78,8 +78,26 @@ class EachUserSerializer(serializers.ModelSerializer):
     def get_profile_pic(self, obj):
         return obj.user.profile_pic_url
 
+class EachFollowerSerializer(serializers.ModelSerializer):
+    nickname = serializers.CharField(source='user.nickname')
+    profile_pic = serializers.SerializerMethodField(method_name="get_profile_pic")
+    isfollowing = serializers.SerializerMethodField(method_name="get_isfollowing")
+
+    class Meta:
+        model = Profile
+        fields = ('id','nickname','profile_pic', "isfollowing")
+        read_only_fields = ('id','username','profile_pic')
+
+    def get_profile_pic(self, obj):
+        return obj.user.profile_pic_url
+
+    def get_isfollowing(self, obj):
+        if obj in obj.following.all():
+            return True
+        return False
+
 class FollowerSerializer(serializers.ModelSerializer):
-    followers = EachUserSerializer(many=True, read_only=True)
+    followers = EachFollowerSerializer(many=True, read_only=True)
     following = EachUserSerializer(many=True, read_only=True)
     
     class Meta:
