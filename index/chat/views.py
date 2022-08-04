@@ -20,7 +20,7 @@ class ChatListView(APIView):
 
     def get(self, request):
         auth = Helper(request).is_autheticated()
-
+ 
         if auth["status"]:
             #user = User.objects.filter(id=auth["payload"]["id"])[0].id
             contact = get_user_contact(auth["payload"]["id"])

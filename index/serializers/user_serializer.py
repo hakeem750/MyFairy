@@ -2,6 +2,7 @@ from rest_framework import serializers
 from ..model.user import *
 from ..model.post import Post 
 from ..serializers.post_serializer import PostDetailSerializer
+from collections import OrderedDict
 
 
 
@@ -78,23 +79,37 @@ class EachUserSerializer(serializers.ModelSerializer):
     def get_profile_pic(self, obj):
         return obj.user.profile_pic_url
 
+
+
 class EachFollowerSerializer(serializers.ModelSerializer):
     nickname = serializers.CharField(source='user.nickname')
     profile_pic = serializers.SerializerMethodField(method_name="get_profile_pic")
-    isfollowing = serializers.SerializerMethodField(method_name="get_isfollowing")
+    #isfollowing = serializers.SerializerMethodField(method_name="get_isfollowing")
 
     class Meta:
+        #list_serializer_class = EachFollowerListSerializer
         model = Profile
-        fields = ('id','nickname','profile_pic', "isfollowing")
+        fields = ('id','nickname','profile_pic',)
         read_only_fields = ('id','username','profile_pic')
+
 
     def get_profile_pic(self, obj):
         return obj.user.profile_pic_url
 
-    def get_isfollowing(self, obj):
-        if obj in obj.following.all():
-            return True
-        return False
+    # def get_isfollowing(self, obj):
+    #     return False
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        data = dict(data)
+        data["isfollowing"] = True if  instance in instance.following.all() else False
+        # if  instance in instance.following.all():
+        #     data["isfollowing"] = True
+        # else:
+        #     data["isfollowing"] = False
+
+        data = OrderedDict(data.items())
+        return data
 
 class FollowerSerializer(serializers.ModelSerializer):
     followers = EachFollowerSerializer(many=True, read_only=True)

@@ -25,6 +25,6 @@ urlpatterns = [
     path("cycle-event/", ListEvent.as_view(), name="list-cycle"),
     path("create-cycles/", CreateCycleView.as_view(), name="create-cycle"),
     path("comments/<int:pk>/", CommentList.as_view()),
-    path('follow_unfollow/',FollowUnfollowView.as_view(),name = "follow_unfollow"),
+    path('follow_unfollow/',FollowUnfollowView.as_view(),name="follow_unfollow"),
     # path("comments/<int:pk>/", CommentDetail.as_view()),
 ]

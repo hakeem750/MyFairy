@@ -77,6 +77,7 @@ class Parent(models.Model):
     datetime = models.DateTimeField(auto_now_add=True)
 
 class Profile(models.Model):
+    
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
     private_account = models.BooleanField(default=False)
     followers = models.ManyToManyField('self', blank=True, related_name='user_followers', symmetrical=False)
