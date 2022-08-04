@@ -68,13 +68,14 @@ class UserDetailSerializer(serializers.ModelSerializer):
         return PostDetailSerializer(Post.objects.filter(owner=obj.id), many=True).data
 
 class EachUserSerializer(serializers.ModelSerializer):
+    user_id = serializers.IntegerField(source='user.id')
     nickname = serializers.CharField(source='user.nickname')
     profile_pic = serializers.SerializerMethodField(method_name="get_profile_pic")
 
     class Meta:
         model = Profile
-        fields = ('id','nickname','profile_pic')
-        read_only_fields = ('id','username','profile_pic')
+        fields = ('user_id','nickname','profile_pic')
+        read_only_fields = ('id','nickname','profile_pic')
 
     def get_profile_pic(self, obj):
         return obj.user.profile_pic_url
@@ -82,6 +83,7 @@ class EachUserSerializer(serializers.ModelSerializer):
 
 
 class EachFollowerSerializer(serializers.ModelSerializer):
+    user_id = serializers.IntegerField(source='user.id')
     nickname = serializers.CharField(source='user.nickname')
     profile_pic = serializers.SerializerMethodField(method_name="get_profile_pic")
     #isfollowing = serializers.SerializerMethodField(method_name="get_isfollowing")
@@ -89,8 +91,8 @@ class EachFollowerSerializer(serializers.ModelSerializer):
     class Meta:
         #list_serializer_class = EachFollowerListSerializer
         model = Profile
-        fields = ('id','nickname','profile_pic',)
-        read_only_fields = ('id','username','profile_pic')
+        fields = ('user_id','nickname','profile_pic',)
+        read_only_fields = ('nickname','profile_pic')
 
 
     def get_profile_pic(self, obj):
@@ -103,10 +105,8 @@ class EachFollowerSerializer(serializers.ModelSerializer):
 
         data = super().to_representation(instance)
         data = dict(data)
-        print(instance)
-        print(instance.following.all())
-        print(instance in instance.following.all())
-        data["isfollowing"] = True if  instance in instance.following.all() else False
+        following = Profile.objects.get(user_id=instance.user.id).following.all()        
+        data["isfollowing"] = True if  instance in following else False
         data = OrderedDict(data.items())
         return data
 

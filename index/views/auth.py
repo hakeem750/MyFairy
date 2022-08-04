@@ -15,6 +15,7 @@ import os
 from django.conf import settings
 from django.shortcuts import render
 from django.http import Http404
+from collections import OrderedDict
 
 
 class RegisterView(APIView):
@@ -376,18 +377,25 @@ class EnterPasswordView(APIView):
                 status=status.HTTP_200_OK
         )
 
+def check_user(data, following):
+    if Profile.objects.get(user_id=data["user_id"]) in following:
+        data["isfollowing"] = True
+        return data
+
+    return data
+
 class FollowUnfollowView(APIView):
     
     def my_profile(self, pk):
         try:
 
-            return Profile.objects.get(user=pk)
+            return Profile.objects.get(user_id=pk)
         except Profile.DoesNotExist:
             raise Http404
         
     def other_profile(self, pk):
         try:
-            return Profile.objects.get(id=pk)
+            return Profile.objects.get(user_id=pk)
         except Profile.DoesNotExist:
             raise Http404
     
@@ -526,13 +534,23 @@ class FollowUnfollowView(APIView):
         auth = Helper(request).is_autheticated()
 
         if auth["status"]:
-            serializer = FollowerSerializer(Profile.objects.filter(user=auth["payload"]["id"])[0])
+            profile = Profile.objects.filter(user_id=auth["payload"]["id"])[0]
+            serializer = FollowerSerializer(profile)
+            following = profile.following.all()
+            sdata = dict(serializer.data)
+            data = dict(serializer.data)["followers"]
+            data = [i if dict(i)["isfollowing"] == True else OrderedDict(check_user(dict(i), following)) for i in data]
+            
+            sdata["followers"] = data
+            sdata = OrderedDict(sdata)
+
+
 
             return Response(
             {
                 "status": True,
                 "message": "Followers Feteched Successfully",
-                "data": serializer.data,
+                "data": sdata,
             },
             status=status.HTTP_200_OK,
         )
