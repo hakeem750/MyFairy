@@ -100,14 +100,13 @@ class EachFollowerSerializer(serializers.ModelSerializer):
     #     return False
 
     def to_representation(self, instance):
+
         data = super().to_representation(instance)
         data = dict(data)
+        print(instance)
+        print(instance.following.all())
+        print(instance in instance.following.all())
         data["isfollowing"] = True if  instance in instance.following.all() else False
-        # if  instance in instance.following.all():
-        #     data["isfollowing"] = True
-        # else:
-        #     data["isfollowing"] = False
-
         data = OrderedDict(data.items())
         return data
 
