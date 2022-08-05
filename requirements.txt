@@ -6,3 +6,4 @@ djangorestframework==3.13.1
 djangorestframework_simplejwt==5.0.0
 PyJWT==2.4.0
 python-decouple==3.6
+channels-redis==3.4.1
