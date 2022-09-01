@@ -9,7 +9,7 @@ class ContactSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Contact
-        fields = ('nickname','profile_pic')
+        fields = ('nickname', 'profile_pic')
         read_only_fields = ('id','username','profile_pic')
 
     def get_profile_pic(self, obj):
@@ -44,7 +44,7 @@ class ChatSerializer(serializers.ModelSerializer):
     def get_last_message(self, obj):
 
         if len(list(obj.messages.all())) < 1:
-            
+
             return []
         return ChatMessageSerializer(list(obj.messages.all())[-1]).data
 

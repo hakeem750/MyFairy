@@ -8,7 +8,7 @@ from django.urls import path
 
 
 urlpatterns = [
-    path("register", RegisterView.as_view()),
+    path("register", RegisterView.as_view(), name="home"),
     path("user_details/<int:pk>/", UserDetails.as_view()),
     path("login", Login.as_view()),
     path("forgot-password", ForgotPasswordView.as_view()),
@@ -26,5 +26,7 @@ urlpatterns = [
     path("create-cycles/", CreateCycleView.as_view(), name="create-cycle"),
     path("comments/<int:pk>/", CommentList.as_view()),
     path('follow_unfollow/',FollowUnfollowView.as_view(),name="follow_unfollow"),
+    path('refer-a-friend/',FriendView.as_view(),name="refer"),
+    path("add-a-fairy/", CreateFairyCycleView.as_view(), name="add-a-fairy")
     # path("comments/<int:pk>/", CommentDetail.as_view()),
 ]

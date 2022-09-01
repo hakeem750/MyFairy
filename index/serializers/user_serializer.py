@@ -80,8 +80,6 @@ class EachUserSerializer(serializers.ModelSerializer):
     def get_profile_pic(self, obj):
         return obj.user.profile_pic_url
 
-
-
 class EachFollowerSerializer(serializers.ModelSerializer):
     user_id = serializers.IntegerField(source='user.id')
     nickname = serializers.CharField(source='user.nickname')

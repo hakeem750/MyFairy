@@ -562,3 +562,44 @@ class FollowUnfollowView(APIView):
                 },
                 status=status.HTTP_200_OK,
             )
+
+class FriendView(APIView):
+    def post(self, request, *args, **kwargs):
+
+        auth = Helper(request).is_autheticated()
+        if auth["status"]:
+            user = User.objects.filter(id=auth["payload"]["id"]).first()
+            data = {}
+            email = request.POST.get('email')
+
+            site = get_current_site(request).domain
+            link = reverse("home")
+
+            url = "http://" + site + link
+            body = (
+                "Hi Fairy\n"
+                + user.fullname
+                + " has invited you to join them on the MyFairy platform\n"
+                + "Use the link below to get started \n"
+                + url
+            )
+            data = {
+                "subject": "Join MyFairy",
+                "body": body,
+                "user_email": email,
+            }
+            Helper.send_email(data)
+            print(data)
+            return Response(
+                {
+                    "status": True,
+                    "message": "Invitation Sent",
+                    "link":url
+                },
+                status=status.HTTP_200_OK,
+            )
+        else:
+            return Response(
+                {"status": False, "message": "Unathorised"},
+                status=status.HTTP_200_OK,
+            )
