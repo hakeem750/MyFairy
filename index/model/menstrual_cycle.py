@@ -19,10 +19,8 @@ class MenstrualCycle(models.Model):
                                    choices=PERIOD_FLOW_CHOICE,
                                    default=MEDIUM, )
     owner = models.ForeignKey(User, on_delete=models.CASCADE)
-    myfairy = models.BooleanField(default=False)
-    email = models.CharField(max_length=28, null=True, blank=True)
 
-
-class MyFairy(models.Model):
+class Fairy(models.Model):
+    
     owner = models.ForeignKey(User, on_delete=models.CASCADE)
-    email = models.CharField(max_length=28)
+    email = models.CharField(max_length=225)

@@ -4,7 +4,7 @@ from ..helper import Helper
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.generics import ListAPIView
-from ..model.menstrual_cycle import MenstrualCycle, MyFairy
+from ..model.menstrual_cycle import MenstrualCycle, Fairy
 from ..helper import *
 from ..serializers.cycle_serializer import *
 from rest_framework.generics import CreateAPIView, UpdateAPIView
@@ -71,64 +71,6 @@ class CreateCycleView(APIView):
                 status=status.HTTP_401_UNAUTHORIZED,
             )
 
-class CreateFairyCycleView(APIView):
-    def post(self, request):
-
-        auth_status = Helper(request).is_autheticated()
-        if auth_status["status"]:
-            user = User.objects.filter(id=auth_status["payload"]["id"]).first()
-            user_data = get_data(request.POST)
-            serializer = FairySerializer(data=user_data)
-
-            if serializer.is_valid():
-                serializer.save(owner=user)
-
-                return Response(
-                {
-                "status": True,
-                "message": "Cycle created successfully", 
-                "data": serializer.data 
-                },
-                status=status.HTTP_201_CREATED,
-            )
-
-            else:
-                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)            
-
-        else:
-            return Response(
-                {"status": False, "message": "Unathorised"},
-                status=status.HTTP_401_UNAUTHORIZED,
-            )
-
-    def put(self, request, **kwargs):
-        auth_status = Helper(request).is_autheticated()
-        if auth_status["status"]:
-
-            user = User.objects.filter(id=auth_status["payload"]["id"]).first()
-            update_period = MenstrualCycle.objects.filter(owner=user).first()
-            serializer = FairySerializer(data=request.data, partial=True)
-
-            if serializer.is_valid():
-                serializer.instance = update_period
-                serializer.save()
-                user_data = serializer.data
-                last_period_date = user_data.get("Last_period_date", "")
-                cycle_length = user_data.get("Cycle_length", "")
-                period_length = user_data.get("Period_length", "")
-                period_flow = user_data.get("period_flow", "")
-                owner = user
-                #name = owner.nickname
-                return Response(
-                    {"status": True, "data": serializer.data, },
-                    status=status.HTTP_201_CREATED,
-                )
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        else:
-            return Response(
-                {"status": False, "message": "Unathorised"},
-                status=status.HTTP_401_UNAUTHORIZED,
-            )
 
 # class ListCycleEvent(APIView):
 #     def get(self, request, *args, **kwargs):
@@ -197,22 +139,17 @@ class ListEvent(APIView):
                 status=status.HTTP_401_UNAUTHORIZED,
             )
 
-class CreateListFairyView(APIView):
+
+class AddListFairy(APIView):
     def post(self, request):
 
-        auth_status = Helper(request).is_autheticated()
+        auth_status = Helper(request).is_authenticated()
         if auth_status["status"]:
-            request_data = get_data(request.POST)
-            email = request_data.pop("email")
-            data = {}
-            data["email"] = email
-            data["user"] = User.objects.filter(id=auth_status["payload"]["id"]).first().nickname      
-            data["fairy"] = {**request_data, **{"owner":data["user"]}}
-            print(data)
-            serializer = FairySerializer(data=data)
+            user = User.objects.filter(id=auth_status["payload"]["id"]).first()
+            serializer = MenstrualCycleSerializer(request.data)
 
             if serializer.is_valid():
-                serializer.save()
+                serializer.save(owner=user)
 
                 return Response(
                     {
@@ -237,12 +174,12 @@ class CreateListFairyView(APIView):
 
     def get(self, request):
     
-        auth_status = Helper(request).is_autheticated()
+        auth_status = Helper(request).is_authenticated()
         if auth_status["status"]:
             user = User.objects.filter(id=auth_status["payload"]["id"]).first()
             
-            faries = Fairy.objects.filter(owner=user)
-            serializer = FairySerializer(faries, many=True)
+            faries = MenstrualCycle.objects.filter(owner=user)
+            serializer = MenstrualCycleSerializer(faries, many=True)
             
             return Response({"status": True, "Faires":serializer.data}, status=status.HTTP_200_OK)
         else:
@@ -251,7 +188,60 @@ class CreateListFairyView(APIView):
                 status=status.HTTP_401_UNAUTHORIZED)
             
             
-            
+class CreateFairyCycleView(APIView):
+    def post(self, request):
+
+        auth_status = Helper(request).is_autheticated()
+        if auth_status["status"]:
+            user = User.objects.filter(id=auth_status["payload"]["id"]).first()
+            user_data = request.data
+            serializer = FairySerializer(data=user_data)
+
+            if serializer.is_valid():
+                serializer.save(owner=user)
+
+                return Response(
+                {
+                "status": True,
+                "message": "Fairy created successfully", 
+                "data": serializer.data 
+                },
+                status=status.HTTP_201_CREATED,
+            )
+
+            else:
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)            
+
+        else:
+            return Response(
+                {"status": False, "message": "Unathorised"},
+                status=status.HTTP_401_UNAUTHORIZED,
+            )
+
+    def put(self, request, **kwargs):
+        auth_status = Helper(request).is_autheticated()
+        if auth_status["status"]:
+
+            user = User.objects.filter(id=auth_status["payload"]["id"]).first()
+            update_fairy = Fairy.objects.filter(owner=user).first()
+            serializer = FairySerializer(data=request.data, partial=True)
+
+            if serializer.is_valid():
+                serializer.instance = update_fairy
+                serializer.save()
+                user_data = serializer.data
+                email = user_data.get("email", "")
+                owner = user
+                return Response(
+                    {"status": True, "data": serializer.data,},
+                    status=status.HTTP_201_CREATED,
+                )
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response(
+                {"status": False, "message": "Unathorised"},
+                status=status.HTTP_401_UNAUTHORIZED,
+            )            
             
             
             

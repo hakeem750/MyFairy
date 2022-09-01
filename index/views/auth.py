@@ -563,40 +563,39 @@ class FollowUnfollowView(APIView):
                 status=status.HTTP_200_OK,
             )
 
-class FriendView(APIView):
+class ReferAFriend(APIView):
     def post(self, request, *args, **kwargs):
 
         auth = Helper(request).is_autheticated()
         if auth["status"]:
             user = User.objects.filter(id=auth["payload"]["id"]).first()
             data = {}
-            email = request.POST.get('email')
-
+            data["email"] = request.POST.get('email')
             site = get_current_site(request).domain
-            link = reverse("home")
+
+            link = reverse("register")
 
             url = "http://" + site + link
             body = (
                 "Hi Fairy\n"
                 + user.fullname
-                + " has invited you to join them on the MyFairy platform\n"
-                + "Use the link below to get started \n"
+                + "has invite you\n"
                 + url
             )
             data = {
-                "subject": "Join MyFairy",
+                "subject": "Parent Consent",
                 "body": body,
-                "user_email": email,
+                "user_email": data["email"],
             }
             Helper.send_email(data)
-            print(data)
+
             return Response(
                 {
                     "status": True,
-                    "message": "Invitation Sent",
-                    "link":url
+                    "message": "Consent email sent to parent",
+                    "url": url,
                 },
-                status=status.HTTP_200_OK,
+                status=status.HTTP_201_CREATED,
             )
         else:
             return Response(
