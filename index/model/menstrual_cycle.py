@@ -24,3 +24,4 @@ class Fairy(models.Model):
     
     owner = models.ForeignKey(User, on_delete=models.CASCADE)
     email = models.CharField(max_length=225)
+    shared = models.CharField(max_length=225, null=True, blank=True)

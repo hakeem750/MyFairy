@@ -26,8 +26,9 @@ urlpatterns = [
     path("create-cycles/", CreateCycleView.as_view(), name="create-cycle"),
     path("comments/<int:pk>/", CommentList.as_view()),
     path('follow_unfollow/',FollowUnfollowView.as_view(),name="follow_unfollow"),
-    path('refer-a-friend/',ReferAFriend.as_view(), name="refer-a-friend"),
+    path('refer-a-friend/', ReferAFriend.as_view(), name="refer-a-friend"),
     path('add-a-fairy/', CreateFairyCycleView.as_view(), name="add-a-fairy"),
+    path('share-cycle/', ShareCycleView.as_view(), name="share-cycle"),
     
     # path("comments/<int:pk>/", CommentDetail.as_view()),
 ]

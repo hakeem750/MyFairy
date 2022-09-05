@@ -22,3 +22,11 @@ class FairySerializer(serializers.ModelSerializer):
         fields = [
             "email", 
         ]
+
+class ShareCycleSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Fairy
+        fields = [
+            "shared", 
+        ]
