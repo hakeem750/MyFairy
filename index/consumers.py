@@ -78,12 +78,7 @@ class ChatConsumer(WebsocketConsumer):
 
     def receive(self, text_data):
         #print(text_data)
-        #data = json.loads(text_data)
-        data = {"command": "new_message",
-                "from":1, 
-                "message": "my message", 
-                "chatId":1} 
-        
+        data = json.loads(text_data)        
         self.commands[data['command']](self, data)
 
     def send_chat_message(self, message):
