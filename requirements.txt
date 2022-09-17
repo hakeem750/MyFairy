@@ -1,9 +1,11 @@
 asgiref==3.5.2
 channels==3.0.5
-Django==3.2.8
+Django==3.2.13
 django_rest_swagger==2.2.0
 djangorestframework==3.13.1
 djangorestframework_simplejwt==5.0.0
+eventlet==0.33.1
+gevent_socketio==0.3.6
 PyJWT==2.4.0
 python-decouple==3.6
-channels-redis==3.4.1
+python-socketio==5.7.1
