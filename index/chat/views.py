@@ -66,9 +66,9 @@ class ChatCreateView(APIView):
 
             other_user = User.objects.get(id=data["id"]).id
 
+            print(user, other_user)
             my_contact = get_user_contact(user)
             other_contact = get_user_contact(other_user)
-            
             chat = Chat.objects.create()
             chat.participants.add(my_contact, other_contact)
             chat.save()

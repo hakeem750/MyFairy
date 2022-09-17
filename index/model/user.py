@@ -73,8 +73,6 @@ class User(AbstractUser):
 class Parent(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     email = models.CharField(max_length=255)
-    # add_fairy = models.CharField(max_length=255)
-    # shared_cycle = models.CharField(max_length=255)
     conscent = models.BooleanField(default=False)
     datetime = models.DateTimeField(auto_now_add=True)
 

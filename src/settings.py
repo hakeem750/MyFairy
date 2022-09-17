@@ -33,7 +33,7 @@ ALLOWED_HOSTS = ['*']
 # Application definition
 
 INSTALLED_APPS = [
-    "channels",
+   # "channels",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -43,6 +43,8 @@ INSTALLED_APPS = [
     "index.apps.IndexConfig",
     "rest_framework",
     "rest_framework_swagger",
+    "sio_app",
+
     
 ]
 
@@ -86,7 +88,7 @@ REST_FRAMEWORK = {
 }
 
 WSGI_APPLICATION = "src.wsgi.application"
-ASGI_APPLICATION = "src.routing.application"
+#ASGI_APPLICATION = "src.routing.application"
 
 
 CHANNEL_LAYERS = {

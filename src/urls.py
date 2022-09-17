@@ -9,8 +9,9 @@ schema_view = get_swagger_view(title="MyFairy API")
 urlpatterns = [
     path('', schema_view),
     path('admin/', admin.site.urls),
-    path('api/chat/', include('index.chat.urls', namespace='chat')),
+    #path('api/chat/', include('index.chat.urls', namespace='chat')),
     path('api/', include("index.urls")),
+    path(r'socket/', include('sio_app.urls')),
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

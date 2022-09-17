@@ -592,7 +592,7 @@ class ReferAFriend(APIView):
             return Response(
                 {
                     "status": True,
-                    "message": "Consent email sent to parent",
+                    "message": "Invitation Sent",
                     "url": url,
                 },
                 status=status.HTTP_201_CREATED,
