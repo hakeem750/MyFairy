@@ -29,6 +29,8 @@ urlpatterns = [
     path('refer-a-friend/', ReferAFriend.as_view(), name="refer-a-friend"),
     path('add-a-fairy/', CreateFairyCycleView.as_view(), name="add-a-fairy"),
     path('share-cycle/', ShareCycleView.as_view(), name="share-cycle"),
+    path('get-contacts/', GetContacts.as_view(), name="get-contacts"),
+    
     
     # path("comments/<int:pk>/", CommentDetail.as_view()),
 ]

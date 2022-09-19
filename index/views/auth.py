@@ -1,4 +1,5 @@
 from rest_framework.views import APIView
+from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
 from rest_framework import status
 from ..helper import Helper, get_data
@@ -22,6 +23,7 @@ class RegisterView(APIView):
     def post(self, request, *args, **kwargs):
 
         data = get_data(request.POST)
+        print(data)
         serializer = UserSerializer(data=data)
         if serializer.is_valid():
             serializer.save()
@@ -602,3 +604,40 @@ class ReferAFriend(APIView):
                 {"status": False, "message": "Unathorised"},
                 status=status.HTTP_200_OK,
             )
+
+
+
+class GetContacts(APIView):
+
+    def post(self, request, *args, **kwargs):
+
+        auth = Helper(request).is_autheticated()
+        if auth["status"]:
+            user = User.objects.filter(id=auth["payload"]["id"]).first()
+            print(request.data)
+            numbers = request.data["contacts"]
+            data = self.check_data(numbers)
+
+            return Response(
+                {
+                    "status": True,
+                    "message": "Contact data checked successfully",
+                    "contacts": data,
+                },
+                status=status.HTTP_201_CREATED,
+            )
+        else:
+            return Response(
+                {"status": False, "message": "Unathorised"},
+                status=status.HTTP_200_OK,
+            )
+    
+    def check_data(self, numbers):
+        if len(numbers) > 0:
+
+            data = [{(i):(True if User.objects.filter(phone=i).exists() else False)} for i in numbers]
+            return data 
+        else:
+             return []
+
+

@@ -11,7 +11,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/chat/', include('index.chat.urls', namespace='chat')),
     path('api/', include("index.urls")),
-    path(r'socket/', include('sio_app.urls')),
+    path('socket/', include('sio_app.urls')),
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
