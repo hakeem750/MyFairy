@@ -1,7 +1,7 @@
 from rest_framework.views import APIView
-from rest_framework.generics import GenericAPIView
+from rest_framework.generics import GenericAPIView, ListCreateAPIView
 from rest_framework.response import Response
-from rest_framework import status
+from rest_framework import status, filters 
 from ..helper import Helper, get_data
 from ..serializers.user_serializer import *
 from ..model.user import User
@@ -494,7 +494,7 @@ class FollowUnfollowView(APIView):
                 status=status.HTTP_200_OK,
             )
 
-# Here we can fetch followers, following detail and blocked user, pending request, sended request.. 
+                    # Here we can fetch followers, following detail and blocked user, pending request, sended request.. 
 
     def patch(self, request, format=None):
     
@@ -509,7 +509,7 @@ class FollowUnfollowView(APIView):
             pf = list(Profile.objects.filter(pending_request = self.current_profile().id).values('id','user__nickname','profile_pic'))
             return Response({"data" : serializer.data,"Sended Request" :pf},status=status.HTTP_200_OK)
 
-# You can block and unblock user
+    # You can block and unblock user
 
     def put(self, request):
 
@@ -605,8 +605,6 @@ class ReferAFriend(APIView):
                 status=status.HTTP_200_OK,
             )
 
-
-
 class GetContacts(APIView):
 
     def post(self, request, *args, **kwargs):
@@ -634,10 +632,15 @@ class GetContacts(APIView):
     
     def check_data(self, numbers):
         if len(numbers) > 0:
-
-            data = [{(i):(True if User.objects.filter(phone=i).exists() else False)} for i in numbers]
+            data = [{"phone":i, "isAvailable":User.objects.filter(phone=i).exists()} for i in numbers]
             return data 
         else:
              return []
 
 
+class SearchView(ListCreateAPIView):
+
+    search_fields = ["nickname"]
+    filter_backends = (filters.SearchFilter,)
+    queryset = User.objects.all()
+    serializer_class = UserSearchSerializer

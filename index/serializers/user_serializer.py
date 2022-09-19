@@ -67,6 +67,17 @@ class UserDetailSerializer(serializers.ModelSerializer):
     def get_posts(self, obj):
         return PostDetailSerializer(Post.objects.filter(owner=obj.id), many=True).data
 
+
+class UserSearchSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        
+        model = User
+        fields = [
+            "nickname",
+        ]
+
+
 class EachUserSerializer(serializers.ModelSerializer):
     user_id = serializers.IntegerField(source='user.id')
     nickname = serializers.CharField(source='user.nickname')

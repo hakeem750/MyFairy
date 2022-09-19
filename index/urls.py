@@ -30,6 +30,7 @@ urlpatterns = [
     path('add-a-fairy/', CreateFairyCycleView.as_view(), name="add-a-fairy"),
     path('share-cycle/', ShareCycleView.as_view(), name="share-cycle"),
     path('get-contacts/', GetContacts.as_view(), name="get-contacts"),
+    path('search/', SearchView.as_view(), name="search"),
     
     
     # path("comments/<int:pk>/", CommentDetail.as_view()),
