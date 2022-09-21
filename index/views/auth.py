@@ -612,7 +612,7 @@ class GetContacts(APIView):
         auth = Helper(request).is_autheticated()
         if auth["status"]:
             user = User.objects.filter(id=auth["payload"]["id"]).first()
-            print(request.data)
+            #print(request.data)
             numbers = request.data["contacts"]
             data = self.check_data(numbers)
 
@@ -632,7 +632,8 @@ class GetContacts(APIView):
     
     def check_data(self, numbers):
         if len(numbers) > 0:
-            data = [{"phone":i, "isAvailable":User.objects.filter(phone=i).exists()} for i in numbers]
+            #print(User.objects.filter(phone=numbers[0]).first().id)
+            data = [{"phone": i, "isAvailable":User.objects.filter(phone=i).exists(), "id":User.objects.filter(phone=i).first().id if User.objects.filter(phone=i).first() else None} for i in numbers]
             return data 
         else:
              return []
