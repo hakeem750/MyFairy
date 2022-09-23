@@ -25,12 +25,12 @@ class ChatListView(APIView):
         if auth["status"]:
             #user = User.objects.filter(id=auth["payload"]["id"])[0].id
             contact = get_user_contact(auth["payload"]["id"])
-            # print(contact)
+            #print(contact.chats.filter(participants__id=contact.id))
             chats = ChatSerializer(contact.chats.all(), many=True)
 
             return Response({"status":True, "data":chats.data}, status=status.HTTP_200_OK)
 
-        return  Response({"status":False, "message":"Unathorised"})
+        return  Response({"status":False, "message":"Unathorised"}, status=status.HTTP_200_OK)
 
 
 
@@ -68,23 +68,39 @@ class ChatCreateView(APIView):
             other_user = User.objects.get(id=data["id"]).id
 
             #print(user, other_user)
-            my_contact = get_user_contact(user)
-            other_contact = get_user_contact(other_user)
-            chat = Chat.objects.create()
-            chat.participants.add(my_contact, other_contact)
-            chat.save()
+            if other_user != user:
 
-            serializer = ChatSerializer(chat)
+                my_contact = get_user_contact(user)
+                other_contact = get_user_contact(other_user)
+                if my_contact.chats.filter(participants__id=other_contact.id).exists():
+                
+                    chat = Chat.objects.create()
+                    chat.participants.add(my_contact, other_contact)
+                    chat.save()
+
+                    serializer = ChatSerializer(chat)
+
+                    return Response({
+                        "status":True, 
+                        "message":"Chat created successfully", 
+                        "data": serializer.data}, status=status.HTTP_201_CREATED)
+                else: 
+                    return Response({
+                        "status":False, 
+                        "message":"This chat already exist", 
+                        }, status=status.HTTP_201_CREATED)
+            else:
+                return Response({
+                    "status":False, 
+                    "message":"You can't create chat with yourself", 
+                    }, status=status.HTTP_201_CREATED)
+
+        else:
 
             return Response({
-                "status":True, 
-                "message":"Chat created successfully", 
-                "data": serializer.data}, status=status.HTTP_201_CREATED)
-
-
-        return Response({
-                "status":True, 
-                "message":"Unathorised",}, status=status.HTTP_200_OK)
+                "status":False, 
+                "message":"Unathorised",}, 
+                status=status.HTTP_200_OK)
 
 
 

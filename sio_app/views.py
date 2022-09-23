@@ -16,7 +16,7 @@ thread = None
 MODE = "eventlet"
 basedir = os.path.dirname(os.path.realpath(__file__))
 sio = socketio.Server(async_mode=MODE, 
-                      #logger=True, 
+                      logger=True, 
                       #engineio_logger=True, 
                       cors_allowed_origins='*')
 
@@ -26,7 +26,7 @@ def get_user_contact(id):
 
 def get_last_10_messages(chatId):
     chat = get_object_or_404(Chat, id=chatId)
-    return chat.messages.order_by('-timestamp').all()[:10]
+    return chat.messages.order_by('-timestamp').all()[:50]
 
 def get_current_chat(chatId):
     return get_object_or_404(Chat, id=chatId)
