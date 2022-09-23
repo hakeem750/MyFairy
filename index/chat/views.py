@@ -16,6 +16,7 @@ from index.views.chat_view import get_user_contact
 from rest_framework.views import APIView
 from index.helper import Helper, get_data
 
+
 class ChatListView(APIView):
 
     def get(self, request):
@@ -66,7 +67,7 @@ class ChatCreateView(APIView):
 
             other_user = User.objects.get(id=data["id"]).id
 
-            print(user, other_user)
+            #print(user, other_user)
             my_contact = get_user_contact(user)
             other_contact = get_user_contact(other_user)
             chat = Chat.objects.create()

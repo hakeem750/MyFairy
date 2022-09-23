@@ -17,7 +17,7 @@ MODE = "eventlet"
 basedir = os.path.dirname(os.path.realpath(__file__))
 sio = socketio.Server(async_mode=MODE, 
                       #logger=True, 
-                      engineio_logger=True, 
+                      #engineio_logger=True, 
                       cors_allowed_origins='*')
 
 def get_user_contact(id):
@@ -110,9 +110,9 @@ commands = {
 
 @sio.event
 def connect(sid, environ):
-    print(f'Client Connected {environ}')
-    print()
-    print()
+    # print(f'Client Connected {environ}')
+    # print()
+    # print()
     sio.emit('response', {'data': 'Connected'}, room=sid)
 
 
@@ -131,7 +131,6 @@ def my_join(sid, message):
 
 @sio.event
 def room_event(sid, message):
-    # data = json.loads(text_data) 
     # message = {
     #     "command":new_message,
     #     "from": 1,
@@ -139,7 +138,7 @@ def room_event(sid, message):
     #     "chatId": 1
     # }       
     data = commands[message['command']](message)
-    print(data)
+    #print(data)
     sio.emit('response', data, room=message['chatId'])
 
 @sio.event
