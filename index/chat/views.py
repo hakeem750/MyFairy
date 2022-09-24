@@ -33,19 +33,6 @@ class ChatListView(APIView):
         return  Response({"status":False, "message":"Unathorised"}, status=status.HTTP_200_OK)
 
 
-
-    # serializer_class = ChatSerializer
-    # permission_classes = (permissions.AllowAny, )
-
-    # def get_queryset(self):
-    #     queryset = Chat.objects.all()
-    #     nickname = self.request.query_params.get('nickname', None)
-    #     if username is not None:
-    #         contact = get_user_contact(nickname)
-    #         queryset = contact.chats.all()
-    #     return queryset
-
-
 class ChatDetailView(RetrieveAPIView):
     queryset = Chat.objects.all()
     serializer_class = ChatSerializer
@@ -55,63 +42,54 @@ class ChatDetailView(RetrieveAPIView):
 
         
 
-
-
 class ChatCreateView(APIView):
 
     def post(self, request):
+
         auth = Helper(request).is_autheticated()
         data = get_data(request.POST)
         if auth["status"]:
-            user = User.objects.get(id=auth["payload"]["id"]).id
 
+            user = User.objects.get(id=auth["payload"]["id"]).id
             other_user = User.objects.get(id=data["id"]).id
 
-            #print(user, other_user)
             if other_user != user:
 
                 my_contact = get_user_contact(user)
                 other_contact = get_user_contact(other_user)
-                if my_contact.chats.filter(participants__id=other_contact.id).exists():
-                
+                intersections = (Chat.objects.filter(participants=my_contact) & other_contact.chats.all())
+                #print(intersections)
+                if not intersections.exists():
+                    
                     chat = Chat.objects.create()
                     chat.participants.add(my_contact, other_contact)
                     chat.save()
-
                     serializer = ChatSerializer(chat)
 
                     return Response({
-                        "status":True, 
-                        "message":"Chat created successfully", 
-                        "data": serializer.data}, status=status.HTTP_201_CREATED)
+                        "status": True, 
+                        "message": "New chat created successfully", 
+                        "data": serializer.data}, 
+                        status=status.HTTP_201_CREATED)
                 else: 
+                    serializer = ChatSerializer(intersections.first())
                     return Response({
-                        "status":False, 
+                        "status": True, 
                         "message":"This chat already exist", 
+                        "data": serializer.data
                         }, status=status.HTTP_201_CREATED)
             else:
                 return Response({
-                    "status":False, 
+                    "status": False, 
                     "message":"You can't create chat with yourself", 
                     }, status=status.HTTP_201_CREATED)
 
         else:
 
             return Response({
-                "status":False, 
+                "status": False, 
                 "message":"Unathorised",}, 
                 status=status.HTTP_200_OK)
-
-
-
-
-
-
-
-# class ChatCreateView(CreateAPIView):
-#     queryset = Chat.objects.all()
-#     serializer_class = ChatSerializer
-#     permission_classes = (permissions.IsAuthenticated, )
 
 
 class ChatUpdateView(UpdateAPIView):

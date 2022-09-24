@@ -71,7 +71,9 @@ def new_message(data):
     user_contact = get_user_contact(data['from'])
     message = Message.objects.create(
         contact=user_contact,
-        content=data['message'])
+        content=data['message'], 
+        #msg=data["msg"]
+        )
     current_chat = get_current_chat(data['chatId'])
     current_chat.messages.add(message)
     current_chat.save()
@@ -92,6 +94,7 @@ def message_to_json(message):
         'id': message.id,
         'author': message.contact.user.nickname,
         'content': message.content,
+        "msg": message.msg,
         'timestamp': str(message.timestamp)
     }
 
@@ -107,12 +110,17 @@ commands = {
         'new_message': new_message
     }
 
+def handle_type(msg):
+    _type = msg["type"]
+    if _type == "image":
+        pass
+        
+
+    return msg
+
 
 @sio.event
 def connect(sid, environ):
-    # print(f'Client Connected {environ}')
-    # print()
-    # print()
     sio.emit('response', {'data': 'Connected'}, room=sid)
 
 

@@ -19,7 +19,7 @@ class ChatMessageSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Message
-        fields = ("content", "timestamp")
+        fields = ("content", "msg", "timestamp")
 
 
 class ChatSerializer(serializers.ModelSerializer):

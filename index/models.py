@@ -14,6 +14,7 @@ class Contact(models.Model):
 class Message(models.Model):
     contact = models.ForeignKey(Contact, related_name='messages', on_delete=models.CASCADE)
     content = models.TextField()
+    msg = models.JSONField(default=str, null=True, blank=True)
     timestamp = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

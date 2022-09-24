@@ -38,6 +38,12 @@ class PostList(APIView):
                 if file_serializer.is_valid():
                     file_serializer.save()
                     data["audio"] = json.dumps(file_serializer.data["audio"])
+                    
+                else:
+                    return Response(
+                        {"status": False, "message": file_serializer.errors},
+                        status=status.HTTP_200_OK,
+                    )
             
             
             if serializer.is_valid():
