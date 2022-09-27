@@ -633,7 +633,12 @@ class GetContacts(APIView):
     def check_data(self, numbers):
         if len(numbers) > 0:
             #print(User.objects.filter(phone=numbers[0]).first().id)
-            data = [{"phone": i, "isAvailable":User.objects.filter(phone=i).exists(), "id":User.objects.filter(phone=i).first().id if User.objects.filter(phone=i).first() else None} for i in numbers]
+
+            data = [{"phone": i, 
+                     "isAvailable": User.objects.filter(phone=i).exists(), 
+                     "id": User.objects.filter(phone=i).first().id if User.objects.filter(phone=i).first() else None,
+                     "nickname":User.objects.filter(phone=i).first().nickname if User.objects.filter(phone=i).first() else None} for i in numbers]
+
             return data 
         else:
              return []
