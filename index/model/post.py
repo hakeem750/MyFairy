@@ -17,9 +17,18 @@ class Post(models.Model):
                                     related_name="blogs_like",
                                     verbose_name=_("Likes"),
                                 )
+    thumbnail = models.ImageField(blank=True, null=True)
 
     class Meta:
         ordering = ["created"]
+
+    @property
+    def thumbnail_url(self):
+
+        if self.thumbnail and hasattr(self.thumbnail, 'url'):
+            return self.thumbnail.url
+        else:
+            return "pictures/default.jpg"
 
 
 class Category(models.Model):

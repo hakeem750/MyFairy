@@ -7,7 +7,14 @@ class PostSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Post
-        fields = ["id", "title", "body", "audio", "owner", "created", "category"]
+        fields = ["id", 
+                  "title", 
+                  "body", 
+                  "audio", 
+                  "owner", 
+                  "created", 
+                  "category", 
+                  "thumbnail"]
 
 
 class PostDetailSerializer(serializers.ModelSerializer):
@@ -26,7 +33,9 @@ class PostDetailSerializer(serializers.ModelSerializer):
             "created",
             "category",
             "likes",
+            "thumbnail_url",
             "comments",
+            
         ]
 
         read_only_fields = [

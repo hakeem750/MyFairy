@@ -30,6 +30,7 @@ class PostList(APIView):
             data = get_data(request.POST)
             serializer = PostSerializer(data=data)
             audio_data = request.FILES.get('audio')
+            data["thumbnail"] = request.FILES.get('thumbnail')
             if audio_data:
                 
                 audio_id = str(int(time.time()))+"_"+str(auth_status['payload']['id'])
