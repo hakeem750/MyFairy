@@ -28,7 +28,7 @@ class Post(models.Model):
         if self.thumbnail and hasattr(self.thumbnail, 'url'):
             return self.thumbnail.url
         else:
-            return "pictures/default.jpg"
+            return "/pictures/default.jpg"
 
 
 class Category(models.Model):

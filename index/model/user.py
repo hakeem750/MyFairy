@@ -51,6 +51,10 @@ class User(AbstractUser):
     dob = models.DateField(verbose_name="Date of Birth")
     email_verified = models.BooleanField(null=True)
     user_verified = models.BooleanField(default=False)
+    is_doctor = models.BooleanField(default=False)
+    is_lawyer = models.BooleanField(default=False)
+    is_social_worker = models.BooleanField(default=False)
+    is_therapist = models.BooleanField(default=False)
     profile_pic = models.ImageField(blank=True, null=True)
 
     USERNAME_FIELD = "email"
@@ -64,7 +68,7 @@ class User(AbstractUser):
         if self.profile_pic and hasattr(self.profile_pic, 'url'):
             return self.profile_pic.url
         else:
-            return "pictures/default.jpg"
+            return "/pictures/default.jpg"
             
     def __str__(self):
         return self.nickname
