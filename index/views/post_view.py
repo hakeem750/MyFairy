@@ -17,7 +17,24 @@ import time
 
 class Feed(APIView):
     def get(self, request):
+        auth_status = Helper(request).is_autheticated()
+        user = User.objects.filter(id=auth_status["payload"]["id"]).first()
+        posts = Post.objects.all()
+        serializer = PostDetailSerializer(posts, many=True)
+        print(serializer.data)
+
+        return Response(
+            {
+                "status": True,
+                "message": "Posts fetched successfully",
+                "data": serializer.data,
+            },
+            status=status.HTTP_200_OK,
+        )
+
+    def user_liked(self, user):
         pass
+
 
 
 class PostList(APIView):

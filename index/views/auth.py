@@ -5,6 +5,7 @@ from rest_framework import status, filters
 from ..helper import Helper, get_data
 from ..serializers.user_serializer import *
 from ..model.user import User
+from index.chat.serializers import ContactSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth.hashers import make_password
 from django.contrib.sites.shortcuts import get_current_site
@@ -644,10 +645,63 @@ class GetContacts(APIView):
         else:
              return []
 
-
 class SearchView(ListCreateAPIView):
 
     search_fields = ["nickname"]
     filter_backends = (filters.SearchFilter,)
     queryset = User.objects.all()
     serializer_class = UserSearchSerializer
+
+
+class GetPersonnel(APIView):
+    def post(self, request):
+        _type = request.data["type"]
+
+        if _type == "doctor":
+            user = User.objects.filter(is_doctor=True)
+            serializers = PersonnelSerializer(user, many=True)
+            return Response(
+                {
+                    "status": True,
+                    "message": "personnel Feteched Successfully",
+                    "data": serializers.data,
+                },
+                status=status.HTTP_200_OK,
+            )
+        elif _type == "lawyer":
+            user = User.objects.filter(is_lawyer=True)
+            serializers = PersonnelSerializer(user, many=True)
+            return Response(
+                {
+                    "status": True,
+                    "message": "personnel Feteched Successfully",
+                    "data": serializers.data,
+                },
+                status=status.HTTP_200_OK,
+            )
+
+        elif _type == "social worker":
+            user = User.objects.filter(is_social_worker=True)
+            serializers = PersonnelSerializer(user, many=True)
+            return Response(
+                {
+                    "status": True,
+                    "message": "personnel Feteched Successfully",
+                    "data": serializers.data,
+                },
+                status=status.HTTP_200_OK,
+            )
+        elif _type == "therapist":
+            user = User.objects.filter(is_therapist=True)
+            serializers = PersonnelSerializer(user, many=True)
+            return Response(
+                {
+                    "status": True,
+                    "message": "personnel Feteched Successfully",
+                    "data": serializers.data,
+                },
+                status=status.HTTP_200_OK,
+            )
+
+
+        

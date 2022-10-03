@@ -18,6 +18,7 @@ urlpatterns = [
     path("parent-email", ParentEmail.as_view()),
     path("get-conscent", GetConsent.as_view(), name="get-parent-consent"),
     path("posts/", PostList.as_view()),
+    path("feed/", Feed.as_view()),
     path("posts/<int:pk>/", PostDetail.as_view()),
     path("categories/", CategoryList.as_view()),
     path("categories/<int:pk>/", CategoryDetail.as_view()),
@@ -30,6 +31,7 @@ urlpatterns = [
     path('add-a-fairy/', CreateFairyCycleView.as_view(), name="add-a-fairy"),
     path('share-cycle/', ShareCycleView.as_view(), name="share-cycle"),
     path('get-contacts/', GetContacts.as_view(), name="get-contacts"),
+    path('get-personnel/', GetPersonnel.as_view(), name="get-personnel"),
     path('search/', SearchView.as_view(), name="search"),
     
     

@@ -58,7 +58,7 @@ class User(AbstractUser):
     profile_pic = models.ImageField(blank=True, null=True)
 
     USERNAME_FIELD = "email"
-    REQUIRED_FIELDS = ["dob"]
+    REQUIRED_FIELDS = ["dob", "phone"]
 
     objects = UserManager()
 

@@ -68,6 +68,14 @@ class UserDetailSerializer(serializers.ModelSerializer):
         return PostDetailSerializer(Post.objects.filter(owner=obj.id), many=True).data
 
 
+class PersonnelSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        
+        model = User
+        fields = ["id", "nickname", "fullname", "email",]
+
+
 class UserSearchSerializer(serializers.ModelSerializer):
 
     class Meta:
