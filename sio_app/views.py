@@ -11,6 +11,7 @@ import json
 from index.helper import Helper
 from index.models import Message, Chat, Contact
 from index.model.user import User
+from socketio.exceptions import ConnectionRefusedError
 from decouple import config
 from django.shortcuts import get_object_or_404
 from enum import Enum
@@ -137,15 +138,20 @@ def handle_type(msg):
 def connect(sid, environ):
     
     global chats, auth
-    jwt_str = dict(environ["headers_raw"]).get('Authorization')
-    auth = jwt.decode(jwt_str, config("secret_key"), algorithms=[config("algorithm")])
-    contact = get_user_contact(auth["id"])
-    chats = list(contact.chats.all().values_list("id", flat=True))
-    #print(chats)
-    if User.objects.filter(id=auth["id"]).first().is_staff:
-        sio.emit('response', {"online":True}, broadcast=True, include_self=False)
-    else:
-        sio.emit('response', {"online":True}, to=chats, room=sid)
+
+    try:
+        jwt_str = dict(environ["headers_raw"]).get('Authorization')
+        auth = jwt.decode(jwt_str, config("secret_key"), algorithms=[config("algorithm")])
+        contact = get_user_contact(auth["id"])
+        chats = list(contact.chats.all().values_list("id", flat=True))
+        #print(chats)
+        if User.objects.filter(id=auth["id"]).first().is_staff:
+            sio.emit('response', {"online":True}, broadcast=True, include_self=False)
+        else:
+            sio.emit('response', {"online":True}, to=chats, room=sid)
+    except Exception as e:
+        print(e)
+        raise ConnectionRefusedError('Authentication failed')
 
 
 
