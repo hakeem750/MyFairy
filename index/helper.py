@@ -1,14 +1,15 @@
 import jwt
 from datetime import *
 from django.core.mail import EmailMessage
+from decouple import config
 import math
 
 
 class Helper:
     def __init__(self, request):
         self.request = request
-        self.secret_key = "Biz101SECRETKEY"
-        self.algorithm = "HS256"
+        self.secret_key = config("secret_key")
+        self.algorithm = config("algorithm")
 
     def is_autheticated(self):
         try:

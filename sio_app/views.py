@@ -4,12 +4,17 @@ from rest_framework.views import APIView
 from rest_framework import status
 
 import os
+import jwt
 from django.http import HttpResponse
 import socketio
 import json
+from index.helper import Helper
 from index.models import Message, Chat, Contact
 from index.model.user import User
+from decouple import config
 from django.shortcuts import get_object_or_404
+from enum import Enum
+
 
 
 thread = None
@@ -30,6 +35,7 @@ def get_last_10_messages(chatId):
 
 def get_current_chat(chatId):
     return get_object_or_404(Chat, id=chatId)
+
 
 class Index(APIView):
 
@@ -98,6 +104,13 @@ def message_to_json(message):
         'timestamp': str(message.timestamp)
     }
 
+def typing(message):
+    return {
+
+        'author': message.contact.user.nickname,
+        'is_typing': True
+    }
+
 # def send_message(self, message):
 #     self.send(text_data=json.dumps(message))
 
@@ -107,7 +120,8 @@ def message_to_json(message):
 
 commands = {
         'fetch_messages': fetch_messages,
-        'new_message': new_message
+        'new_message': new_message,
+        'typing': typing,
     }
 
 def handle_type(msg):
@@ -121,7 +135,18 @@ def handle_type(msg):
 
 @sio.event
 def connect(sid, environ):
-    sio.emit('response', {'data': 'Connected'}, room=sid)
+    
+    global chats, auth
+    jwt_str = dict(environ["headers_raw"]).get('Authorization')
+    auth = jwt.decode(jwt_str, config("secret_key"), algorithms=[config("algorithm")])
+    contact = get_user_contact(auth["id"])
+    chats = list(contact.chats.all().values_list("id", flat=True))
+    #print(chats)
+    if User.objects.filter(id=auth["id"]).first().is_staff:
+        sio.emit('response', {"online":True}, broadcast=True, include_self=False)
+    else:
+        sio.emit('response', {"online":True}, to=chats, room=sid)
+
 
 
 @sio.event
@@ -189,10 +214,17 @@ def my_broadcast_event(sid, message):
 
 @sio.event
 def disconnect_request(sid):
+    # print(chats)
+    sio.emit('response', {'data': 'Disconnected', "online":False}, room=sid)
     sio.disconnect(sid)
+
 
 
 
 @sio.event
 def disconnect(sid):
-    print('Client disconnected')
+    if User.objects.filter(id=auth["id"]).first().is_staff:
+        sio.emit('response', {"online":True}, broadcast=True, include_self=False)
+    else:
+        sio.emit('response', {"online":True}, to=chats, room=sid)
+    #print('Client disconnected')
