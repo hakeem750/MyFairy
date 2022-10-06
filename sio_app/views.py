@@ -159,7 +159,7 @@ def connect(sid, environ):
 def join(sid, message):
     print(sid)
     sio.enter_room(sid, message['chatId'])
-    sio.emit('response', {'data': 'Entered room: ' + str(message['chatId'])}, room=sid)
+    sio.emit('join', {'data': 'Entered room: ' + str(message['chatId'])}, room=sid)
 
 
 @sio.event
@@ -175,10 +175,20 @@ def room_event(sid, message):
     #     "from": 1,
     #     "message": "This is a new message"
     #     "chatId": 1
-    # }       
+    # }
     data = commands[message['command']](message)
     #print(data)
-    sio.emit('response', data, room=message['chatId'])
+    if message['command'] == 'fetch_messages':
+        sio.emit('fetch_messages', data, room=message['chatId'])
+
+    elif message['command'] == 'new_message':
+        sio.emit('new_message', data, room=message['chatId'])
+
+    elif message['command'] == 'typing':
+        sio.emit('typing', data, room=message['chatId'])
+
+    
+    
 
 @sio.event
 def my_room_event(sid, message):
@@ -194,12 +204,12 @@ def my_leave(sid, message):
 @sio.event
 def leave(sid, message):
     sio.leave_room(sid, message['chatId'])
-    sio.emit('response', {'data': 'Left room: ' + message['chatId']}, room=sid)
+    sio.emit('leave_room', {'data': 'Left room: ' + message['chatId']}, room=sid)
 
 
 @sio.event
 def close_room(sid, message):
-    sio.emit('response', {'data': 'Room ' + message['chatId'] + ' is closing.'}, room=message['chatId'])
+    sio.emit('close', {'data': 'Room ' + message['chatId'] + ' is closing.'}, room=message['chatId'])
     sio.close_room(message['room'])
 
 
