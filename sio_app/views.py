@@ -154,7 +154,7 @@ def connect(sid, environ):
     #     print(e)
     #     raise ConnectionRefusedError('Authentication failed')
 
-    sio.emit('response', {"data": "connected"}, to=chats, room=sid)
+    sio.emit('response', {"data": "connected"}, room=sid)
 
 
 
