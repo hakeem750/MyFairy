@@ -136,26 +136,26 @@ def handle_type(msg):
 
 @sio.event
 def connect(sid, environ, auth):
-    print(f"1 {auth}")
-    print(f"2 {environ}")
+    # print(f"1 {auth}")
+    # print(f"2 {environ}")
     
-    #global chats, auth
+    global chats, _auth
 
-    # try:
-    #     jwt_str = dict(environ["headers_raw"]).get('Authorization')
-    #     auth = jwt.decode(jwt_str, config("secret_key"), algorithms=[config("algorithm")])
-    #     contact = get_user_contact(auth["id"])
-    #     chats = list(contact.chats.all().values_list("id", flat=True))
-    #     #print(chats)
-    #     if User.objects.filter(id=auth["id"]).first().is_staff:
-    #         sio.emit('response', {"online": True}, broadcast=True, include_self=False)
-    #     else:
-    #         sio.emit('response', {"online": True}, to=chats, room=sid)
-    # except Exception as e:
-    #     print(e)
-    #     raise ConnectionRefusedError('Authentication failed')
+    try:
+        jwt_str = auth.get('Authorization')
+        _auth = jwt.decode(jwt_str, config("secret_key"), algorithms=[config("algorithm")])
+        contact = get_user_contact(_auth["id"])
+        chats = list(contact.chats.all().values_list("id", flat=True))
+        #print(chats)
+        if User.objects.filter(id=_auth["id"]).first().is_staff:
+            sio.emit('response', {"online": True}, broadcast=True, include_self=False)
+        else:
+            sio.emit('response', {"online": True}, to=chats, room=sid)
+    except Exception as e:
+        print(e)
+        raise ConnectionRefusedError('Authentication failed')
 
-    sio.emit('response', {"data": "connected"}, room=sid)
+    #sio.emit('response', {"data": "connected"}, room=sid)
 
 
 
@@ -243,8 +243,8 @@ def disconnect_request(sid):
 
 @sio.event
 def disconnect(sid):
-    # if User.objects.filter(id=auth["id"]).first().is_staff:
-    #     sio.emit('response', {"online": False}, broadcast=True, include_self=False)
-    # else:
-    #     sio.emit('response', {"online": False}, to=chats, room=sid)
+    if User.objects.filter(id=_auth["id"]).first().is_staff:
+        sio.emit('response', {"online": False}, broadcast=True, include_self=False)
+    else:
+        sio.emit('response', {"online": False}, to=chats, room=sid)
     print('Client disconnected')
