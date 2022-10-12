@@ -135,10 +135,11 @@ def handle_type(msg):
 
 
 @sio.event
-def connect(sid, environ):
-    print(environ)
+def connect(sid, environ, auth):
+    print(f"1 {auth}")
+    print(f"2 {environ}")
     
-    global chats, auth
+    #global chats, auth
 
     # try:
     #     jwt_str = dict(environ["headers_raw"]).get('Authorization')
