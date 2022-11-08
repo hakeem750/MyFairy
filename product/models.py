@@ -159,7 +159,7 @@ class Review(models.Model):
         Product, null=True, default=None, on_delete=models.CASCADE
     )
     user = models.ForeignKey(User, default=None, on_delete=models.CASCADE)
-    review = models.CharField(max_length=300)
+    review = models.CharField(max_length=300, default=None)
     rating = models.IntegerField(
         validators=[MinValueValidator(1), MaxValueValidator(5)]
     )
