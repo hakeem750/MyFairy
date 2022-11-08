@@ -66,7 +66,9 @@ class Helper:
     def send_email(data):
 
         email = EmailMessage(
-            subject=data["subject"], body=data["body"], to=[data["user_email"]]
+            subject=data["subject"], 
+            body=data["body"], 
+            to=[data["user_email"]]
         )
         email.send()
 

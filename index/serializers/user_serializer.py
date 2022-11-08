@@ -5,7 +5,6 @@ from ..serializers.post_serializer import PostDetailSerializer
 from collections import OrderedDict
 
 
-
 class UserSerializer(serializers.ModelSerializer):
 
     posts = serializers.PrimaryKeyRelatedField(many=True, read_only=True)

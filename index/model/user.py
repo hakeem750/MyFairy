@@ -5,6 +5,8 @@ from django.utils.translation import ugettext_lazy as _
 from datetime import datetime
 from django.db.models.signals import post_save
 
+# from .post import Bookmarks
+
 
 class UserManager(BaseUserManager):
     """
@@ -65,11 +67,11 @@ class User(AbstractUser):
     @property
     def profile_pic_url(self):
 
-        if self.profile_pic and hasattr(self.profile_pic, 'url'):
+        if self.profile_pic and hasattr(self.profile_pic, "url"):
             return self.profile_pic.url
         else:
             return "/pictures/default.jpg"
-            
+
     def __str__(self):
         return self.nickname
 
@@ -80,25 +82,35 @@ class Parent(models.Model):
     conscent = models.BooleanField(default=False)
     datetime = models.DateTimeField(auto_now_add=True)
 
+
 class Profile(models.Model):
-    
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
+
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="profile")
     private_account = models.BooleanField(default=False)
-    followers = models.ManyToManyField('self', blank=True, related_name='user_followers', symmetrical=False)
-    following = models.ManyToManyField('self', blank=True, related_name='user_following', symmetrical=False)
-    pending_request = models.ManyToManyField('self', blank=True, related_name='pendingRequest',symmetrical=False)
-    blocked_user = models.ManyToManyField('self', blank=True, related_name='user_blocked', symmetrical=False)
+    followers = models.ManyToManyField(
+        "self", blank=True, related_name="user_followers", symmetrical=False
+    )
+    following = models.ManyToManyField(
+        "self", blank=True, related_name="user_following", symmetrical=False
+    )
+    pending_request = models.ManyToManyField(
+        "self", blank=True, related_name="pendingRequest", symmetrical=False
+    )
+    blocked_user = models.ManyToManyField(
+        "self", blank=True, related_name="user_blocked", symmetrical=False
+    )
     created_at = models.DateTimeField(auto_now_add=True)
-    
+
     def __str__(self):
         return f"{self.user.id}"
+
 
 def user_post_save(sender, instance, *arg, **kwargs):
 
     if not Profile.objects.filter(user=instance).exists():
         Profile.objects.create(user=instance)
+    # if not Bookmarks.objects.filter(user=instance).exists():
+    #     Bookmarks.objects.create(user=instance)
 
-    # if not Message.objects.filter(user=instance).exists():
-    #     Message.objects.create(user=instance, )
 
 post_save.connect(user_post_save, sender=User)

@@ -1,7 +1,7 @@
 from rest_framework.views import APIView
 from rest_framework.generics import GenericAPIView, ListCreateAPIView
 from rest_framework.response import Response
-from rest_framework import status, filters 
+from rest_framework import status, filters
 from ..helper import Helper, get_data
 from ..serializers.user_serializer import *
 from ..model.user import User
@@ -24,7 +24,7 @@ class RegisterView(APIView):
     def post(self, request, *args, **kwargs):
 
         data = get_data(request.POST)
-        print(data)
+        # print(data)
         serializer = UserSerializer(data=data)
         if serializer.is_valid():
             serializer.save()
@@ -67,20 +67,21 @@ class RegisterView(APIView):
                 status=status.HTTP_200_OK,
             )
 
+
 class VerifyEmail(APIView):
     def get(self, request):
         token = Helper(request).return_token()
         try:
             payload = token["payload"]
             if payload is None:
-                 return render(request, 'try-again.html', {})
+                return render(request, "try-again.html", {})
 
             user = User.objects.get(id=payload["user_id"])
             if not user.email_verified:
                 user.email_verified = True
                 user.save()
 
-                return render(request, 'verify.html', {})
+                return render(request, "verify.html", {})
 
         except jwt.ExpiredSignatureError as e:
 
@@ -94,10 +95,11 @@ class VerifyEmail(APIView):
                 status=status.HTTP_404_NOT_FOUND,
             )
 
+
 class GetConsent(APIView):
     def get(self, request):
         token = Helper(request).return_token()
-        #print(token)
+        # print(token)
         try:
             payload = token["payload"]
             user = User.objects.get(id=payload["user_id"])
@@ -106,33 +108,34 @@ class GetConsent(APIView):
                 parent.conscent = True
                 parent.save()
 
-            return render(request, 'consent.html', {})
+            return render(request, "consent.html", {})
 
         except jwt.ExpiredSignatureError as e:
 
-            return render(request, 'try-consent.html', {})
+            return render(request, "try-consent.html", {})
 
         except jwt.exceptions.DecodeError as e:
-            return render(request, 'try-consent.html', {})
+            return render(request, "try-consent.html", {})
 
         except Exception as e:
-            return render(request, 'try-consent.html', {})
+            return render(request, "try-consent.html", {})
+
 
 class UserDetails(APIView):
     def get(self, request, pk):
 
-        try :
+        try:
 
             user = User.objects.get(pk=pk)
-            
+
         except User.DoesNotExist:
             return Response(
-                    {
-                        "status": False,
-                        "message": "User not found",
-                    },
-                    status=status.HTTP_200_OK,
-                )
+                {
+                    "status": False,
+                    "message": "User not found",
+                },
+                status=status.HTTP_200_OK,
+            )
         serializers = UserDetailSerializer(user)
         return Response(
             {
@@ -146,35 +149,34 @@ class UserDetails(APIView):
     def put(self, request, pk):
 
         data = get_data(request.POST)
-        data["profile_pic"] = request.FILES.get('profile_pic')
+        data["profile_pic"] = request.FILES.get("profile_pic")
 
-        try :
+        try:
 
             user = User.objects.get(pk=pk)
 
         except User.DoesNotExist:
             return Response(
-                    {
-                        "status": False,
-                        "message": "User not found",
-                    },
-                    status=status.HTTP_200_OK,
-                )
+                {
+                    "status": False,
+                    "message": "User not found",
+                },
+                status=status.HTTP_200_OK,
+            )
 
         serializer = UserSerializer(user, data=data, partial=True)
 
         if serializer.is_valid():
             serializer.save()
 
-
             return Response(
-                    {
-                        "status": True,
-                        "message": "data updated successfully",
-                        "data": serializer.data,
-                    },
-                    status=status.HTTP_200_OK,
-                )
+                {
+                    "status": True,
+                    "message": "data updated successfully",
+                    "data": serializer.data,
+                },
+                status=status.HTTP_200_OK,
+            )
         else:
             return Response(
                 {"status": False, "message": serializer.errors},
@@ -187,6 +189,7 @@ class UserDetails(APIView):
         user.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
+
 class ParentEmail(APIView):
     def post(self, request, *args, **kwargs):
 
@@ -194,7 +197,7 @@ class ParentEmail(APIView):
         if auth["status"]:
             user = User.objects.filter(id=auth["payload"]["id"]).first()
             data = {}
-            data["email"] = request.POST.get('email')
+            data["email"] = request.POST.get("email")
             serializer = ParentSerializer(data=data)
             if serializer.is_valid():
                 serializer.save(user=user)
@@ -237,16 +240,17 @@ class ParentEmail(APIView):
                 status=status.HTTP_200_OK,
             )
 
+
 class Login(APIView):
     def post(self, request, *args, **kwargs):
-
+        # print(request)
         email = request.POST.get("email")
         password = request.POST.get("password")
         user = User.objects.filter(email=email).first()
-        
+
         if user is None:
             return Response(
-                {"status": False, "message": "User not Found Invalid email or password"},
+                {"status": False, "message": "Oops! The email or password is invalid."},
                 status=status.HTTP_200_OK,
             )
         token = Helper(request).get_token(user.id, user.nickname)
@@ -254,29 +258,27 @@ class Login(APIView):
         age = Helper.calculate_age(user.dob)
 
         if age < 13 and parent is None:
-             return Response(
+            return Response(
                 {"status": False, "message": "Parent not Found"},
                 status=status.HTTP_200_OK,
             )
 
         if age < 13 and parent.conscent == False:
             return Response(
-                {"status": False, 
-                 "message": "User is below age and concent is needed",
-                 "token": token
-                 },
+                {
+                    "status": False,
+                    "message": "User is below age and concent is needed",
+                    "token": token,
+                },
                 status=status.HTTP_200_OK,
             )
 
-        
-        
         if not user.check_password(password):
             return Response(
-                {"status": False, "message": "Incorrect Password"},
+                {"status": False, "message": "Oops! The email or password is invalid."},
                 status=status.HTTP_200_OK,
             )
 
-        
         serializers = UserSerializer(user)
         return Response(
             {
@@ -287,10 +289,11 @@ class Login(APIView):
             }
         )
 
+
 class VerifyCode(APIView):
     def post(self, request, *args, **kwargs):
 
-        phone = request.POST.get('phone')
+        phone = request.POST.get("phone")
         user = User.objects.filter(phone=phone).first()
         if user is None:
             return Response(
@@ -308,10 +311,11 @@ class VerifyCode(APIView):
             user.save()
         return Response({"status": True, "message": "success"})
 
+
 class ForgotPasswordView(APIView):
     def post(self, request, *args, **kwargs):
 
-        email = request.POST.get('email')
+        email = request.POST.get("email")
         user = User.objects.filter(email=email).first()
         if user is None:
             return Response(
@@ -334,14 +338,17 @@ class ForgotPasswordView(APIView):
         Helper.send_email(data)
         user.code = random_number
         user.save()
-        return Response({"status": True, "message": "success, your code has been sent"},
-                status=status.HTTP_200_OK)
+        return Response(
+            {"status": True, "message": "success, your code has been sent"},
+            status=status.HTTP_200_OK,
+        )
+
 
 class VerifyForgotPasswordView(APIView):
     def post(self, request, *args, **kwargs):
 
-        email = request.POST.get('email')
-        code = int(request.POST.get('code'))
+        email = request.POST.get("email")
+        code = int(request.POST.get("code"))
         user = User.objects.filter(email=email).first()
 
         if user is None:
@@ -356,15 +363,15 @@ class VerifyForgotPasswordView(APIView):
             )
 
         return Response(
-            {"status": True, "message": "success"},
-                status=status.HTTP_200_OK
+            {"status": True, "message": "success"}, status=status.HTTP_200_OK
         )
+
 
 class EnterPasswordView(APIView):
     def post(self, request, *args, **kwargs):
 
-        email = request.POST.get('email')
-        password = request.POST.get('password')
+        email = request.POST.get("email")
+        password = request.POST.get("password")
         user = User.objects.filter(email=email).first()
 
         if user is None:
@@ -376,9 +383,13 @@ class EnterPasswordView(APIView):
         user.password = make_password(password)
         user.save()
         return Response(
-            {"status": True, "message": "success, password has been reset successfully"},
-                status=status.HTTP_200_OK
+            {
+                "status": True,
+                "message": "success, password has been reset successfully",
+            },
+            status=status.HTTP_200_OK,
         )
+
 
 def check_user(data, following):
     if Profile.objects.get(user_id=data["user_id"]) in following:
@@ -387,28 +398,28 @@ def check_user(data, following):
 
     return data
 
+
 class FollowUnfollowView(APIView):
-    
     def my_profile(self, pk):
         try:
 
             return Profile.objects.get(user_id=pk)
         except Profile.DoesNotExist:
             raise Http404
-        
+
     def other_profile(self, pk):
         try:
             return Profile.objects.get(user_id=pk)
         except Profile.DoesNotExist:
             raise Http404
-    
-    def post(self, request, format=None): 
+
+    def post(self, request, format=None):
         auth = Helper(request).is_autheticated()
 
         if auth["status"]:
             data = get_data(request.POST)
-            pk = data.get('id')              # Here pk is opposite user's profile ID
-            req_type = data.get('type')
+            pk = data.get("id")  # Here pk is opposite user's profile ID
+            req_type = data.get("type")
 
             ### types to get
             # follow
@@ -416,99 +427,108 @@ class FollowUnfollowView(APIView):
             # decline
             # unfollow
             # remove
-                    
-            
+
             current_profile = self.my_profile(auth["payload"]["id"])
             other_profile = self.other_profile(pk)
-                    
-            
-            if req_type == 'follow':
+
+            if req_type == "follow":
                 if other_profile.private_account:
                     other_profile.pending_request.add(current_profile)
-                    return Response({
-                        "status": True,
-                        "message" : "Follow request has been send!!"
-                        },
-                        status=status.HTTP_200_OK)
+                    return Response(
+                        {"status": True, "message": "Follow request has been send!!"},
+                        status=status.HTTP_200_OK,
+                    )
                 else:
-                    if other_profile.blocked_user.filter(id=current_profile.id).exists():
-                        return Response({
-                            "status": False,
-                            "message" : "You can not follow this profile becuase your ID blocked by this user!!"
+                    if other_profile.blocked_user.filter(
+                        id=current_profile.id
+                    ).exists():
+                        return Response(
+                            {
+                                "status": False,
+                                "message": "You can not follow this profile becuase your ID blocked by this user!!",
                             },
-                            status=status.HTTP_400_BAD_REQUEST)
+                            status=status.HTTP_400_BAD_REQUEST,
+                        )
 
                     current_profile.following.add(other_profile)
                     other_profile.followers.add(current_profile)
 
-                    return Response({
-                        "status":True, 
-                        "message" : "Following successfully!!"
-                        },
-                        status=status.HTTP_200_OK) 
-            
-            elif req_type == 'accept':
+                    return Response(
+                        {"status": True, "message": "Following successfully!!"},
+                        status=status.HTTP_200_OK,
+                    )
+
+            elif req_type == "accept":
 
                 current_profile.followers.add(other_profile)
                 other_profile.following.add(current_profile)
                 current_profile.pending_request.remove(other_profile)
 
-                return Response({
-                    "status":True, 
-                    "Accepted" : "Follow request successfuly accespted!!"
+                return Response(
+                    {
+                        "status": True,
+                        "Accepted": "Follow request successfuly accespted!!",
                     },
-                    status=status.HTTP_200_OK)
-            
-            elif req_type == 'decline':
+                    status=status.HTTP_200_OK,
+                )
+
+            elif req_type == "decline":
 
                 current_profile.pending_request.remove(other_profile)
-                return Response({
-                    "status":True, 
-                    "message":"Follow request successfully declined!!"
+                return Response(
+                    {
+                        "status": True,
+                        "message": "Follow request successfully declined!!",
                     },
-                    status=status.HTTP_200_OK)
-            
-            elif req_type == 'unfollow':
+                    status=status.HTTP_200_OK,
+                )
+
+            elif req_type == "unfollow":
 
                 current_profile.following.remove(other_profile)
                 other_profile.followers.remove(current_profile)
-                return Response({
-                    "status":True, 
-                    "Unfollow" : "Unfollow success!!"
-                    },
-                    status=status.HTTP_200_OK)
-                
-            elif req_type == 'remove':     # You can remove your follower
+                return Response(
+                    {"status": True, "Unfollow": "Unfollow success!!"},
+                    status=status.HTTP_200_OK,
+                )
+
+            elif req_type == "remove":  # You can remove your follower
                 current_profile.followers.remove(other_profile)
                 other_profile.following.remove(current_profile)
-                return Response({
-                    "status":True,
-                    "Remove Success" : "Successfuly removed your follower!!"
+                return Response(
+                    {
+                        "status": True,
+                        "Remove Success": "Successfuly removed your follower!!",
                     },
-                    status=status.HTTP_200_OK)
+                    status=status.HTTP_200_OK,
+                )
         else:
             return Response(
-                {
-                "status": False, 
-                "message": "Unathorised"
-                },
+                {"status": False, "message": "Unathorised"},
                 status=status.HTTP_200_OK,
             )
 
-                    # Here we can fetch followers, following detail and blocked user, pending request, sended request.. 
+            # Here we can fetch followers, following detail and blocked user, pending request, sended request..
 
     def patch(self, request, format=None):
-    
-        req_type = request.data.POST.get('type')
-    
-        if req_type == 'follow_detail':
+
+        req_type = request.data.POST.get("type")
+
+        if req_type == "follow_detail":
             serializer = FollowerSerializer(self.current_profile())
-            return Response({"data" : serializer.data},status=status.HTTP_200_OK)
-    
-        elif req_type == 'block_pending':
+            return Response({"data": serializer.data}, status=status.HTTP_200_OK)
+
+        elif req_type == "block_pending":
             serializer = BlockPendinSerializer(self.current_profile())
-            pf = list(Profile.objects.filter(pending_request = self.current_profile().id).values('id','user__nickname','profile_pic'))
-            return Response({"data" : serializer.data,"Sended Request" :pf},status=status.HTTP_200_OK)
+            pf = list(
+                Profile.objects.filter(
+                    pending_request=self.current_profile().id
+                ).values("id", "user__nickname", "profile_pic")
+            )
+            return Response(
+                {"data": serializer.data, "Sended Request": pf},
+                status=status.HTTP_200_OK,
+            )
 
     # You can block and unblock user
 
@@ -518,19 +538,21 @@ class FollowUnfollowView(APIView):
 
         if auth["status"]:
             data = get_data(request.POST)
-            pk = data.get('id')              # Here pk is oppisite user's profile ID
-            req_type = data.get('type')
-    
-        if req_type == 'block':
+            pk = data.get("id")  # Here pk is oppisite user's profile ID
+            req_type = data.get("type")
+
+        if req_type == "block":
             self.current_profile().blocked_user.add(self.other_profile(pk))
-            return Response({
-                "status":True,
-                "Blocked" : "This user blocked successfuly"
-                },
-                status=status.HTTP_200_OK)
-        elif req_type == 'unblock':
+            return Response(
+                {"status": True, "Blocked": "This user blocked successfuly"},
+                status=status.HTTP_200_OK,
+            )
+        elif req_type == "unblock":
             self.current_profile().blocked_user.remove(self.other_profile(pk))
-            return Response({"Unblocked" : "This user unblocked successfuly"},status=status.HTTP_200_OK)
+            return Response(
+                {"Unblocked": "This user unblocked successfuly"},
+                status=status.HTTP_200_OK,
+            )
 
     def get(self, request):
 
@@ -542,29 +564,30 @@ class FollowUnfollowView(APIView):
             following = profile.following.all()
             sdata = dict(serializer.data)
             data = dict(serializer.data)["followers"]
-            data = [i if dict(i)["isfollowing"] == True else OrderedDict(check_user(dict(i), following)) for i in data]
-            
+            data = [
+                i
+                if dict(i)["isfollowing"] == True
+                else OrderedDict(check_user(dict(i), following))
+                for i in data
+            ]
+
             sdata["followers"] = data
             sdata = OrderedDict(sdata)
 
-
-
-            return Response(
-            {
-                "status": True,
-                "message": "Followers Feteched Successfully",
-                "data": sdata,
-            },
-            status=status.HTTP_200_OK,
-        )
-        else:
             return Response(
                 {
-                "status": False, 
-                "message": "Unathorised"
+                    "status": True,
+                    "message": "Followers Feteched Successfully",
+                    "data": sdata,
                 },
                 status=status.HTTP_200_OK,
             )
+        else:
+            return Response(
+                {"status": False, "message": "Unathorised"},
+                status=status.HTTP_200_OK,
+            )
+
 
 class ReferAFriend(APIView):
     def post(self, request, *args, **kwargs):
@@ -573,20 +596,20 @@ class ReferAFriend(APIView):
         if auth["status"]:
             user = User.objects.filter(id=auth["payload"]["id"]).first()
             data = {}
-            data["email"] = request.POST.get('email')
+            data["email"] = request.POST.get("email")
             site = get_current_site(request).domain
 
             link = reverse("register")
 
-            url = "http://" + site + link
+            url = "https://play.google.com/store/apps/details?id=com.my_fairies"
             body = (
                 "Hi Fairy\n"
                 + user.fullname
-                + "has invite you\n"
+                + "has invited you to join them on the myfairy app\n"
                 + url
             )
             data = {
-                "subject": "Parent Consent",
+                "subject": "Join MyFairy",
                 "body": body,
                 "user_email": data["email"],
             }
@@ -606,14 +629,14 @@ class ReferAFriend(APIView):
                 status=status.HTTP_200_OK,
             )
 
-class GetContacts(APIView):
 
+class GetContacts(APIView):
     def post(self, request, *args, **kwargs):
 
         auth = Helper(request).is_autheticated()
         if auth["status"]:
             user = User.objects.filter(id=auth["payload"]["id"]).first()
-            #print(request.data)
+            # print(request.data)
             numbers = request.data["contacts"]
             data = self.check_data(numbers)
 
@@ -630,20 +653,30 @@ class GetContacts(APIView):
                 {"status": False, "message": "Unathorised"},
                 status=status.HTTP_200_OK,
             )
-    
+
     def check_data(self, numbers):
         if len(numbers) > 0:
-            #print(User.objects.filter(phone=numbers[0]).first().id)
+            # print(User.objects.filter(phone=numbers[0]).first().id)
 
-            data = [{"phone": i, 
-                     "isAvailable": User.objects.filter(phone=i).exists(), 
-                     "id": User.objects.filter(phone=i).first().id if User.objects.filter(phone=i).first() else None,
-                     "nickname":User.objects.filter(phone=i).first().nickname if User.objects.filter(phone=i).first() else None} for i in numbers]
-            data.sort(key=lambda x: x["isAvailable"], reverse=True)                     
+            data = [
+                {
+                    "phone": i,
+                    "isAvailable": User.objects.filter(phone=i).exists(),
+                    "id": User.objects.filter(phone=i).first().id
+                    if User.objects.filter(phone=i).first()
+                    else None,
+                    "nickname": User.objects.filter(phone=i).first().nickname
+                    if User.objects.filter(phone=i).first()
+                    else None,
+                }
+                for i in numbers
+            ]
+            data.sort(key=lambda x: x["isAvailable"], reverse=True)
 
             return data
         else:
-             return []
+            return []
+
 
 class SearchView(ListCreateAPIView):
 
@@ -703,5 +736,12 @@ class GetPersonnel(APIView):
                 status=status.HTTP_200_OK,
             )
 
+        else:
 
-        
+            return Response(
+                {
+                    "status": False,
+                    "message": f"No personnel with {_type} yet",
+                },
+                status=status.HTTP_200_OK,
+            )

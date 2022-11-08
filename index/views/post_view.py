@@ -10,6 +10,7 @@ from rest_framework.generics import (
 )
 from rest_framework import status
 from ..serializers.post_serializer import *
+from ..model.post import Bookmarks
 from django.shortcuts import redirect, get_object_or_404
 import json
 import time
@@ -36,7 +37,6 @@ class Feed(APIView):
         pass
 
 
-
 class PostList(APIView):
     def post(self, request):
 
@@ -46,24 +46,25 @@ class PostList(APIView):
 
             data = get_data(request.POST)
             serializer = PostSerializer(data=data)
-            audio_data = request.FILES.get('audio')
-            data["thumbnail"] = request.FILES.get('thumbnail')
+            audio_data = request.FILES.get("audio")
+            data["thumbnail"] = request.FILES.get("thumbnail")
             if audio_data:
-                
-                audio_id = str(int(time.time()))+"_"+str(auth_status['payload']['id'])
+
+                audio_id = (
+                    str(int(time.time())) + "_" + str(auth_status["payload"]["id"])
+                )
                 modified_data = Helper(request).modify_audio_input(audio_id, audio_data)
                 file_serializer = AudioSerializer(data=modified_data)
                 if file_serializer.is_valid():
                     file_serializer.save()
                     data["audio"] = json.dumps(file_serializer.data["audio"])
-                    
+
                 else:
                     return Response(
                         {"status": False, "message": file_serializer.errors},
                         status=status.HTTP_200_OK,
                     )
-            
-            
+
             if serializer.is_valid():
                 serializer.save(owner=user)
 
@@ -122,19 +123,15 @@ class LikeBlog(APIView):
             if user in post.likes.all():
                 post.likes.remove(user)
                 return Response(
-                {
-                    "status": True, "message": "Post Unliked"
-                },
-                status=status.HTTP_200_OK,
-            )
+                    {"status": True, "message": "Post Unliked"},
+                    status=status.HTTP_200_OK,
+                )
 
             else:
                 post.likes.add(user)
 
             return Response(
-                {
-                    "status": True, "message": "Post liked"
-                },
+                {"status": True, "message": "Post liked"},
                 status=status.HTTP_200_OK,
             )
         else:
@@ -202,16 +199,18 @@ class CommentList(APIView):
             post = get_object_or_404(Post, pk=pk)
             data["post"] = post.id
             user = User.objects.filter(id=auth_status["payload"]["id"]).first()
-            audio_data = request.FILES.get('audio')
+            audio_data = request.FILES.get("audio")
             if audio_data:
-                
-                audio_id = str(int(time.time()))+"_"+str(auth_status['payload']['id'])
+
+                audio_id = (
+                    str(int(time.time())) + "_" + str(auth_status["payload"]["id"])
+                )
                 modified_data = Helper(request).modify_audio_input(audio_id, audio_data)
                 file_serializer = AudioSerializer(data=modified_data)
                 if file_serializer.is_valid():
                     file_serializer.save()
                     data["audio"] = json.dumps(file_serializer.data["audio"])
-                    
+
             serializer = CommentSerializer(data=data)
             if serializer.is_valid():
                 serializer.save(
@@ -238,7 +237,6 @@ class CommentList(APIView):
                 status=status.HTTP_401_UNAUTHORIZED,
             )
 
-
     def get(self, request):
         posts = Post.objects.all()
         serializer = PostSerializer(posts, many=True)
@@ -250,3 +248,107 @@ class CommentList(APIView):
             },
             status=status.HTTP_200_OK,
         )
+
+
+class BookmarksView(APIView):
+    def post(self, request):
+
+        pid = request.GET.get("post")
+        auth_status = Helper(request).is_autheticated()
+        if auth_status["status"]:
+            user = User.objects.filter(id=auth_status["payload"]["id"]).first()
+            post = get_object_or_404(Post, pk=pid)
+
+            if not Bookmarks.objects.filter(user=user).exists():
+
+                bmk = Bookmarks.objects.create(user=user)
+                bmk.post.add(post)
+                bmk.save()
+                serializer = BookmarksSerializer(bmk)
+
+                return Response(
+                    {
+                        "status": True,
+                        "message": "New bookmark created successfully",
+                        "data": serializer.data,
+                    },
+                    status=status.HTTP_201_CREATED,
+                )
+            else:
+                bmk = Bookmarks.objects.get(user=user)
+                bmk.post.add(post)
+                serializer = BookmarksSerializer(bmk)
+                return Response(
+                    {
+                        "status": True,
+                        "message": "New post added successfully",
+                        "data": serializer.data,
+                    },
+                    status=status.HTTP_200_OK,
+                )
+        else:
+
+            return Response(
+                {
+                    "status": False,
+                    "message": "Unathorised",
+                },
+                status=status.HTTP_200_OK,
+            )
+
+    def get(self, request):
+
+        auth_status = Helper(request).is_autheticated()
+        if auth_status["status"]:
+            user = User.objects.filter(id=auth_status["payload"]["id"]).first()
+            bmk = get_object_or_404(Bookmarks, user=user)
+            serializer = BookmarksSerializer(bmk)
+
+            return Response(
+                {
+                    "status": True,
+                    "message": "Bookmark fetched successfully",
+                    "data": serializer.data,
+                },
+                status=status.HTTP_201_CREATED,
+            )
+        else:
+
+            return Response(
+                {
+                    "status": False,
+                    "message": "Unathorised",
+                },
+                status=status.HTTP_200_OK,
+            )
+
+    def delete(self, request):
+
+        pid = request.GET.get("post")
+        auth_status = Helper(request).is_autheticated()
+        if auth_status["status"]:
+            user = User.objects.filter(id=auth_status["payload"]["id"]).first()
+            post = get_object_or_404(Post, pk=pid)
+            bmk = get_object_or_404(Bookmarks, user=user)
+
+            bmk.post.remove(post)
+            bmk.save()
+            serializer = BookmarksSerializer(bmk)
+
+            return Response(
+                {
+                    "status": True,
+                    "message": "Bookmark removed successfully",
+                    "data": serializer.data,
+                },
+                status=status.HTTP_204_NO_CONTENT,
+            )
+        else:
+
+            return Response(
+                {
+                    "status": False,
+                    "message": "Unathorised",
+                },
+                status=status.HTTP_200_OK,
+            )
