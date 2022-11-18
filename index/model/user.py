@@ -53,6 +53,7 @@ class User(AbstractUser):
     dob = models.DateField(verbose_name="Date of Birth")
     email_verified = models.BooleanField(null=True)
     user_verified = models.BooleanField(default=False)
+    stripe_customer_id = models.CharField(max_length=50, blank=True, null=True)
     is_doctor = models.BooleanField(default=False)
     is_lawyer = models.BooleanField(default=False)
     is_social_worker = models.BooleanField(default=False)
