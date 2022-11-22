@@ -353,7 +353,7 @@ class OrderQuantityUpdateView(APIView):
 #     queryset = OrderItem.objects.all()
 
 
-class OrderItemDeleteView(DestroyAPIView):
+class OrderItemDeleteView(APIView):
     def delete(self, request, pk, *args, **kwargs):
 
         auth = Helper(request).is_autheticated()
@@ -698,7 +698,7 @@ class AddressCreateView(APIView):
 #     queryset = Address.objects.all()
 
 
-class AddressUpdateView(UpdateAPIView):
+class AddressUpdateView(APIView):
     def put(self, request, pk):
         auth = Helper(request).is_autheticated()
         if auth["status"]:
@@ -754,7 +754,7 @@ class AddressDeleteView(APIView):
 #         return Payment.objects.filter(user=self.request.user)
 
 
-class PaymentListView(ListAPIView):
+class PaymentListView(APIView):
     def put(self, request):
         auth = Helper(request).is_autheticated()
         if auth["status"]:

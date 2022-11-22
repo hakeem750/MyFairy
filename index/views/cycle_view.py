@@ -11,7 +11,6 @@ from rest_framework.generics import CreateAPIView, UpdateAPIView
 from django.db import IntegrityError
 
 
-
 class CreateCycleView(APIView):
     def post(self, request):
 
@@ -25,16 +24,16 @@ class CreateCycleView(APIView):
                 serializer.save(owner=user)
 
                 return Response(
-                {
-                "status": True,
-                "message": "Cycle created successfully", 
-                "data": serializer.data 
-                },
-                status=status.HTTP_201_CREATED,
-            )
+                    {
+                        "status": True,
+                        "message": "Cycle created successfully",
+                        "data": serializer.data,
+                    },
+                    status=status.HTTP_201_CREATED,
+                )
 
             else:
-                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)            
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
         else:
             return Response(
@@ -59,9 +58,12 @@ class CreateCycleView(APIView):
                 period_length = user_data.get("Period_length", "")
                 period_flow = user_data.get("period_flow", "")
                 owner = user
-                #name = owner.nickname
+                # name = owner.nickname
                 return Response(
-                    {"status": True, "data": serializer.data, },
+                    {
+                        "status": True,
+                        "data": serializer.data,
+                    },
                     status=status.HTTP_201_CREATED,
                 )
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -70,6 +72,7 @@ class CreateCycleView(APIView):
                 {"status": False, "message": "Unathorised"},
                 status=status.HTTP_401_UNAUTHORIZED,
             )
+
 
 class ListEvent(APIView):
     def get(self, request, *args, **kwargs):
@@ -81,25 +84,32 @@ class ListEvent(APIView):
 
             if user_data is None:
                 return Response(
-                {"status": False,
-                 "message": "You need to create a cycle first",
-                 "Events": None},
-                status=status.HTTP_200_OK,
-            )
+                    {
+                        "status": False,
+                        "message": "You need to create a cycle first",
+                        "Events": None,
+                    },
+                    status=status.HTTP_200_OK,
+                )
             serializer = MenstrualCycleSerializer(user_data)
-            Last_period_date = user_data.Last_period_date#serializer.data.get("Last_period_date", "")
+            Last_period_date = (
+                user_data.Last_period_date
+            )  # serializer.data.get("Last_period_date", "")
             Cycle_length = serializer.data.get("Cycle_length", "")
             Period_length = serializer.data.get("Period_length", "")
 
             events = cycle_events(Last_period_date, Cycle_length, Period_length)
 
-            return Response({"status": True,"Events":events}, status=status.HTTP_200_OK)
+            return Response(
+                {"status": True, "Events": events}, status=status.HTTP_200_OK
+            )
 
         else:
             return Response(
                 {"status": False, "message": "Unathorised"},
                 status=status.HTTP_401_UNAUTHORIZED,
             )
+
 
 class AddListFairy(APIView):
     def post(self, request):
@@ -132,22 +142,25 @@ class AddListFairy(APIView):
                 status=status.HTTP_401_UNAUTHORIZED,
             )
 
-
     def get(self, request):
-    
+
         auth_status = Helper(request).is_authenticated()
         if auth_status["status"]:
             user = User.objects.filter(id=auth_status["payload"]["id"]).first()
-            
+
             faries = MenstrualCycle.objects.filter(owner=user)
             serializer = MenstrualCycleSerializer(faries, many=True)
-            
-            return Response({"status": True, "Faires":serializer.data}, status=status.HTTP_200_OK)
+
+            return Response(
+                {"status": True, "Faires": serializer.data}, status=status.HTTP_200_OK
+            )
         else:
             return Response(
                 {"status": False, "message": "Unathorised"},
-                status=status.HTTP_401_UNAUTHORIZED)
-                        
+                status=status.HTTP_401_UNAUTHORIZED,
+            )
+
+
 class CreateFairyCycleView(APIView):
     def post(self, request):
 
@@ -160,16 +173,16 @@ class CreateFairyCycleView(APIView):
             if serializer.is_valid():
                 serializer.save(owner=user)
                 return Response(
-                {
-                "status": True,
-                "message": "Fairy created successfully", 
-                "data": serializer.data,
-                },
-                status=status.HTTP_201_CREATED,
-            )
+                    {
+                        "status": True,
+                        "message": "Fairy created successfully",
+                        "data": serializer.data,
+                    },
+                    status=status.HTTP_201_CREATED,
+                )
 
             else:
-                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)            
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
         else:
             return Response(
@@ -192,7 +205,10 @@ class CreateFairyCycleView(APIView):
                 email = user_data.get("email", "")
                 owner = user
                 return Response(
-                    {"status": True, "data": serializer.data,},
+                    {
+                        "status": True,
+                        "data": serializer.data,
+                    },
                     status=status.HTTP_201_CREATED,
                 )
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -200,19 +216,14 @@ class CreateFairyCycleView(APIView):
             return Response(
                 {"status": False, "message": "Unathorised"},
                 status=status.HTTP_401_UNAUTHORIZED,
-            )            
-            
+            )
+
 
 class ShareCycleView(APIView):
-
-
     def send_email(self, email, user):
-    
+
         body = (
-            "Hi Fairy\n"
-            + user.fullname
-            + "has shared her Menstrual Cycle with you\n"
-            
+            "Hi Fairy\n" + user.fullname + "has shared her Menstrual Cycle with you\n"
         )
         email_data = {
             "subject": "Menstrual Cycle",
@@ -236,16 +247,16 @@ class ShareCycleView(APIView):
                 self.send_email(email, user)
 
                 return Response(
-                {
-                "status": True,
-                "message": "Cycle Shared successfully", 
-                "data": serializer.data 
-                },
-                status=status.HTTP_201_CREATED,
-            )
+                    {
+                        "status": True,
+                        "message": "Cycle Shared successfully",
+                        "data": serializer.data,
+                    },
+                    status=status.HTTP_201_CREATED,
+                )
 
             else:
-                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)            
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
         else:
             return Response(
@@ -266,9 +277,12 @@ class ShareCycleView(APIView):
                 serializer.save()
                 user_data = serializer.data
                 email = user_data.get("email", "")
-                
+
                 return Response(
-                    {"status": True, "data": serializer.data,},
+                    {
+                        "status": True,
+                        "data": serializer.data,
+                    },
                     status=status.HTTP_201_CREATED,
                 )
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -277,25 +291,3 @@ class ShareCycleView(APIView):
                 {"status": False, "message": "Unathorised"},
                 status=status.HTTP_401_UNAUTHORIZED,
             )
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-   
