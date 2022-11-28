@@ -117,10 +117,18 @@ class UserIDView(APIView):
         return Response({"userID": request.user.id}, status=HTTP_200_OK)
 
 
-class ProductListView(ListAPIView):
-    permission_classes = (AllowAny,)
-    serializer_class = ProductSerializer
-    queryset = Product.objects.all()
+# class ProductListView(ListAPIView):
+#     permission_classes = (AllowAny,)
+#     serializer_class = ProductSerializer
+#     queryset = Product.objects.all()
+
+
+class ProductListView(APIView):
+    def get(self, request):
+        q = request.GET.get("category")
+        prod = Product.objects.filter(category=q)
+        serializer = ProductSerializer(prod, many=True)
+        return Response({"status": True, "data": serializer.data})
 
 
 class ProductDetailView(RetrieveAPIView):
