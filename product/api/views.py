@@ -388,6 +388,7 @@ class AddToCartView(APIView):
 
             slug = request.data.get("slug", None)
             variations = request.data.get("variations", [])
+            qty = request.data.get("quantity", 1)
             if slug is None:
                 return Response(
                     {"message": "Invalid request"}, status=HTTP_400_BAD_REQUEST
@@ -412,13 +413,14 @@ class AddToCartView(APIView):
 
             if order_product_qs.exists():
                 order_product = order_product_qs.first()
-                order_product.quantity += 1
+                order_product.quantity = qty
                 order_product.save()
             else:
                 order_product = OrderProduct.objects.create(
                     product=product, user=user, ordered=False
                 )
                 order_product.product_variations.add(*variations)
+                order_product.quantity = qty
                 order_product.save()
 
             order_qs = Order.objects.filter(user=user, ordered=False)
