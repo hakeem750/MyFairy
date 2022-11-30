@@ -320,9 +320,7 @@ class OrderQuantityUpdateView(APIView):
             user = User.objects.filter(id=auth["payload"]["id"]).first()
             slug = request.data.get("slug", None)
             if slug is None:
-                return Response(
-                    {"message": "Invalid data"}, status=HTTP_400_BAD_REQUEST
-                )
+                return Response({"message": "Invalid data"}, status=HTTP_200_OK)
 
             product = get_object_or_404(Product, slug=slug)
             order_qs = Order.objects.filter(user=user, ordered=False)
@@ -342,12 +340,12 @@ class OrderQuantityUpdateView(APIView):
                 else:
                     return Response(
                         {"message": "This item was not in your cart"},
-                        status=HTTP_400_BAD_REQUEST,
+                        status=HTTP_200_OK,
                     )
             else:
                 return Response(
                     {"message": "You do not have an active order"},
-                    status=HTTP_400_BAD_REQUEST,
+                    status=HTTP_200_OK,
                 )
         else:
             return Response(
@@ -390,9 +388,7 @@ class AddToCartView(APIView):
             variations = request.data.get("variations", [])
             qty = request.data.get("quantity", 1)
             if slug is None:
-                return Response(
-                    {"message": "Invalid request"}, status=HTTP_400_BAD_REQUEST
-                )
+                return Response({"message": "Invalid request"}, status=HTTP_200_OK)
 
             product = get_object_or_404(Product, slug=slug)
 
@@ -400,7 +396,7 @@ class AddToCartView(APIView):
             if len(variations) < minimum_variation_count:
                 return Response(
                     {"message": "Please specify the required variation types"},
-                    status=HTTP_400_BAD_REQUEST,
+                    status=HTTP_200_OK,
                 )
 
             order_product_qs = OrderProduct.objects.filter(
@@ -426,10 +422,18 @@ class AddToCartView(APIView):
             order_qs = Order.objects.filter(user=user, ordered=False)
             if order_qs.exists():
                 order = order_qs[0]
-                if not order.products.filter(product__id=order_product.id).exists():
-                    order.products.add(order_product)
+                if order.products.filter(product__id=order_product.product.id).exists():
+                    order.products.remove(order_product)
+                    order.save()
                     return Response(
-                        {"status": True, "message": "Product added to cart"},
+                        {"status": True, "message": "Product removed to cart"},
+                        status=HTTP_200_OK,
+                    )
+                else:
+                    order.products.add(order_product)
+                    order.save()
+                    return Response(
+                        {"status": True, "message": "Product added from cart"},
                         status=HTTP_200_OK,
                     )
 
@@ -437,6 +441,7 @@ class AddToCartView(APIView):
                 ordered_date = timezone.now()
                 order = Order.objects.create(user=user, ordered_date=ordered_date)
                 order.products.add(order_product)
+                order.save()
                 return Response(
                     {"status": True, "message": "Product added to cart"},
                     status=HTTP_200_OK,
@@ -458,7 +463,7 @@ class AddToCartView(APIView):
 #             return order
 #         except ObjectDoesNotExist:
 #             raise Http404("You do not have an active order")
-#             # return Response({"message": "You do not have an active order"}, status=HTTP_400_BAD_REQUEST)
+#             # return Response({"message": "You do not have an active order"}, status=HTTP_200_OK)
 
 
 class OrderDetailView(APIView):
@@ -473,13 +478,13 @@ class OrderDetailView(APIView):
                 serializer = OrderSerializer(order.first())
                 return Response(
                     {"status": True, "data": serializer.data},
-                    status=status.HTTP_404_NOT_FOUND,
+                    status=status.HTTP_200_OK,
                 )
 
             else:
                 return Response(
                     {"status": False, "message": "You do not have an active order"},
-                    status=status.HTTP_404_NOT_FOUND,
+                    status=status.HTTP_200_OK,
                 )
         else:
             return Response(
@@ -564,35 +569,27 @@ class PaymentView(APIView):
                 body = e.json_body
                 err = body.get("error", {})
                 return Response(
-                    {"message": f"{err.get('message')}"}, status=HTTP_400_BAD_REQUEST
+                    {"message": f"{err.get('message')}"}, status=HTTP_200_OK
                 )
 
             except stripe.error.RateLimitError as e:
                 # Too many requests made to the API too quickly
                 messages.warning(self.request, "Rate limit error")
-                return Response(
-                    {"message": "Rate limit error"}, status=HTTP_400_BAD_REQUEST
-                )
+                return Response({"message": "Rate limit error"}, status=HTTP_200_OK)
 
             except stripe.error.InvalidRequestError as e:
                 print(e)
                 # Invalid parameters were supplied to Stripe's API
-                return Response(
-                    {"message": "Invalid parameters"}, status=HTTP_400_BAD_REQUEST
-                )
+                return Response({"message": "Invalid parameters"}, status=HTTP_200_OK)
 
             except stripe.error.AuthenticationError as e:
                 # Authentication with Stripe's API failed
                 # (maybe you changed API keys recently)
-                return Response(
-                    {"message": "Not authenticated"}, status=HTTP_400_BAD_REQUEST
-                )
+                return Response({"message": "Not authenticated"}, status=HTTP_200_OK)
 
             except stripe.error.APIConnectionError as e:
                 # Network communication with Stripe failed
-                return Response(
-                    {"message": "Network error"}, status=HTTP_400_BAD_REQUEST
-                )
+                return Response({"message": "Network error"}, status=HTTP_200_OK)
 
             except stripe.error.StripeError as e:
                 # Display a very generic error to the user, and maybe send
@@ -601,19 +598,17 @@ class PaymentView(APIView):
                     {
                         "message": "Something went wrong. You were not charged. Please try again."
                     },
-                    status=HTTP_400_BAD_REQUEST,
+                    status=HTTP_200_OK,
                 )
 
             except Exception as e:
                 # send an email to ourselves
                 return Response(
                     {"message": "A serious error occurred. We have been notifed."},
-                    status=HTTP_400_BAD_REQUEST,
+                    status=HTTP_200_OK,
                 )
 
-            return Response(
-                {"message": "Invalid data received"}, status=HTTP_400_BAD_REQUEST
-            )
+            return Response({"message": "Invalid data received"}, status=HTTP_200_OK)
         else:
             return Response(
                 {"status": False, "message": "Unathorised"},
@@ -629,7 +624,7 @@ class AddCouponView(APIView):
             code = request.data.get("code", None)
             if code is None:
                 return Response(
-                    {"message": "Invalid data received"}, status=HTTP_400_BAD_REQUEST
+                    {"message": "Invalid data received"}, status=HTTP_200_OK
                 )
             order = Order.objects.get(user=user, ordered=False)
             coupon = get_object_or_404(Coupon, code=code)
