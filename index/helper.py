@@ -1,8 +1,53 @@
 import jwt
+import random
 from datetime import *
 from django.core.mail import EmailMessage
 from decouple import config
 import math
+
+from django.contrib.auth import authenticate
+from index.model.user import User
+from rest_framework.exceptions import AuthenticationFailed
+
+
+def generate_username(name):
+
+    username = "".join(name.split(" ")).lower()
+    if not User.objects.filter(username=username).exists():
+        return username
+    else:
+        random_username = username + str(random.randint(0, 1000))
+        return generate_username(random_username)
+
+
+def register_social_user(provider, email, name):
+    user = User.objects.filter(email=email)
+
+    if user.exists():
+
+        return {
+            "username": user.username,
+            "email": user.email,
+        }
+
+    else:
+        data = {
+            "name": name,
+            "email": email,
+            # "password": "".join([random.choice(config("SOCIAL_SECRET")) for i in range(8)]),
+        }
+        return data
+        # user = User.objects.create_user(**user)
+        # user.email_verified = True
+        # user.auth_provider = provider
+        # user.save()
+
+        # new_user = authenticate(email=email, password=config("SOCIAL_SECRET"))
+        # return {
+        #     "email": new_user.email,
+        #     "username": new_user.username,
+        #     "tokens": new_user.tokens(),
+        # }
 
 
 class Helper:
@@ -21,7 +66,9 @@ class Helper:
 
     def return_token(self):
         try:
-            jwt_str = self.request.query_params.get('token')##self.request.headers.get("Authorization")
+            jwt_str = self.request.query_params.get(
+                "token"
+            )  ##self.request.headers.get("Authorization")
             payload = jwt.decode(jwt_str, self.secret_key, algorithms=[self.algorithm])
             return {"payload": payload}
         except:
@@ -66,17 +113,17 @@ class Helper:
     def send_email(data):
 
         email = EmailMessage(
-            subject=data["subject"], 
-            body=data["body"], 
-            to=[data["user_email"]]
+            subject=data["subject"], body=data["body"], to=[data["user_email"]]
         )
         email.send()
+
 
 def get_data(post):
     a = dict(post)
     data = {}
-    data = {i:a[i][0] for i in a}
+    data = {i: a[i][0] for i in a}
     return data
+
 
 def date_converter(date_string):
     dates = date_string.split("-")
@@ -214,7 +261,7 @@ def cycle_event_analyst(
 def cycle_events(last_period, cycle_length, period_length):
 
     mid = math.floor(cycle_length / 2)
-    
+
     next_period = last_period + timedelta(days=cycle_length)
     period_end = next_period + timedelta(days=period_length)
     ovulation = next_period + timedelta(days=mid)
@@ -228,16 +275,12 @@ def cycle_events(last_period, cycle_length, period_length):
     return {
         "Next_period": next_period,
         "period_days": period_length,
-
         "Free_period": free_period,
         "Free_period_days": Free_period_days,
-
         "Ovulation": ovulation,
         "Ovulation_days": Ovulation_days,
-        
         "Luteal_phase": luteal,
-        "Luteal_days": cycle_length - (period_length + Free_period_days + Ovulation_days),
-
-        "Last_period_date": last_period
-
+        "Luteal_days": cycle_length
+        - (period_length + Free_period_days + Ovulation_days),
+        "Last_period_date": last_period,
     }
