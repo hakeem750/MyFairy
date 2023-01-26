@@ -11,6 +11,7 @@ from django.contrib.auth.hashers import make_password
 from django.contrib.sites.shortcuts import get_current_site
 from django.shortcuts import get_object_or_404
 from django.urls import reverse
+from decouple import config
 import random
 import jwt
 import os
@@ -754,10 +755,54 @@ class GoogleSocialAuthView(GenericAPIView):
     def post(self, request):
         """
         POST with "auth_token"
-        Send an id-token as from google to get user information
+        Send an id-token from google to get user information
         """
 
         serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
         data = (serializer.validated_data)["auth_token"]
         return Response(data, status=status.HTTP_200_OK)
+
+
+class GoogleAuthView(APIView):
+    def post(self, request):
+        data = get_data(request.POST)
+        email = data["email"]
+        user = User.objects.filter(email=email)
+        if user.exists():
+            token = Helper(request).get_token(user.id, user.fullname)
+            return Response(
+                {
+                    "status": True,
+                    "message": "User fetched successfully",
+                    "token": token,
+                },
+                status=status.HTTP_201_CREATED,
+            )
+
+        else:
+
+            serializer = UserSerializer(data=data)
+            if serializer.is_valid():
+                serializer.save()
+                token = Helper(request).get_token(
+                    serializer.data["id"], serializer.data["fullname"]
+                )
+                user = User.objects.get(email=serializer.validated_data["email"])
+                user.email_verified = True
+
+                return Response(
+                    {
+                        "status": True,
+                        "message": "User created successfully",
+                        "token": token,
+                        "data": serializer.data,
+                    },
+                    status=status.HTTP_201_CREATED,
+                )
+
+            else:
+                return Response(
+                    {"status": False, "message": serializer.errors},
+                    status=status.HTTP_200_OK,
+                )

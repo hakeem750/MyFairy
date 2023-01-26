@@ -35,6 +35,6 @@ urlpatterns = [
     path("get-personnel/", GetPersonnel.as_view(), name="get-personnel"),
     path("search/", SearchView.as_view(), name="search"),
     path("bookmarks/", BookmarksView.as_view(), name="bookmarks"),
-    path("google/", GoogleSocialAuthView.as_view()),
+    path("google/", GoogleAuthView.as_view()),
     # path("comments/<int:pk>/", CommentDetail.as_view()),
 ]
