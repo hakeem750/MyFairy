@@ -770,7 +770,7 @@ class GoogleAuthView(APIView):
         email = data["email"]
         user = User.objects.filter(email=email)
         if user.exists():
-            token = Helper(request).get_token(user.id, user.fullname)
+            token = Helper(request).get_token(user[0].id, user[0].fullname)
             return Response(
                 {
                     "status": True,
