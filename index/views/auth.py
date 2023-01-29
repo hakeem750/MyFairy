@@ -2,7 +2,7 @@ from rest_framework.views import APIView
 from rest_framework.generics import GenericAPIView, ListCreateAPIView
 from rest_framework.response import Response
 from rest_framework import status, filters
-from ..helper import Helper, get_data
+from ..helper import Helper, get_data, register_google_user
 from ..serializers.user_serializer import *
 from ..model.user import User
 from index.chat.serializers import ContactSerializer
@@ -748,19 +748,16 @@ class GetPersonnel(APIView):
             )
 
 
-class GoogleSocialAuthView(GenericAPIView):
-
-    serializer_class = GoogleSocialAuthSerializer
-
+class GoogleSocialAuthView(APIView):
     def post(self, request):
-        """
-        POST with "auth_token"
-        Send an id-token from google to get user information
-        """
+        data = get_data(request.POST)
 
-        serializer = self.serializer_class(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        data = (serializer.validated_data)["auth_token"]
+        email = data.get("email", None)
+        fullname = data.get("fullname", None)
+        provider = "google"
+        data = register_google_user(
+            request, provider=provider, email=email, name=fullname
+        )
         return Response(data, status=status.HTTP_200_OK)
 
 

@@ -8,6 +8,9 @@ from django.db.models.signals import post_save
 # from .post import Bookmarks
 
 
+AUTH_PROVIDERS = {"google": "google", "email": "email"}
+
+
 class UserManager(BaseUserManager):
     """
     Custom user model manager where email is the unique identifiers
@@ -45,12 +48,12 @@ class User(AbstractUser):
 
     fullname = models.CharField(max_length=255)
     email = models.CharField(max_length=255, unique=True)
-    phone = models.CharField(max_length=25, unique=True)
+    phone = models.CharField(max_length=25)
     password = models.CharField(max_length=255)
     code = models.IntegerField(default=0)
     username = None
     nickname = models.CharField(max_length=255)
-    dob = models.DateField(verbose_name="Date of Birth")
+    dob = models.DateField(verbose_name="Date of Birth", null=True, blank=True)
     email_verified = models.BooleanField(null=True)
     user_verified = models.BooleanField(default=False)
     stripe_customer_id = models.CharField(max_length=50, blank=True, null=True)
@@ -59,9 +62,12 @@ class User(AbstractUser):
     is_social_worker = models.BooleanField(default=False)
     is_therapist = models.BooleanField(default=False)
     profile_pic = models.ImageField(blank=True, null=True)
+    auth_provider = models.CharField(
+        max_length=255, blank=False, null=False, default=AUTH_PROVIDERS.get("email")
+    )
 
     USERNAME_FIELD = "email"
-    REQUIRED_FIELDS = ["dob", "phone"]
+    REQUIRED_FIELDS = []
 
     objects = UserManager()
 

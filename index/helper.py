@@ -13,7 +13,7 @@ from rest_framework.exceptions import AuthenticationFailed
 def generate_username(name):
 
     username = "".join(name.split(" ")).lower()
-    if not User.objects.filter(username=username).exists():
+    if not User.objects.filter(fullname=username).exists():
         return username
     else:
         random_username = username + str(random.randint(0, 1000))
@@ -284,3 +284,51 @@ def cycle_events(last_period, cycle_length, period_length):
         - (period_length + Free_period_days + Ovulation_days),
         "Last_period_date": last_period,
     }
+
+
+def register_google_user(request, provider, email, name):
+    filtered_user_by_email = User.objects.filter(email=email)
+
+    if filtered_user_by_email.exists():
+
+        # registered_user = authenticate(
+        #     email=email, password=config('SOCIAL_SECRET'))
+        user = filtered_user_by_email.first()
+
+        return {
+            "nickname": user.nickname,
+            "email": user.email,
+            "token": Helper(request).get_token(user.id, user.fullname),
+        }
+
+    else:
+        password = "".join([random.choice(config("SOCIAL_SECRET")) for i in range(8)])
+        user = {
+            "fullname": name,
+            "email": email,
+            "nickname": generate_username(name),
+            "password": password,
+        }
+        user = User.objects.create_user(**user)
+        user.email_verified = True
+        user.auth_provider = provider
+        user.save()
+
+        new_user = authenticate(email=email, password=password)
+        token = Helper(request).get_token(new_user.id, new_user.fullname)
+        body = (
+            f"Dear {new_user.fullname },\n\n"
+            + "We are delighted to welcome you to our platform! We hope you will find it user-friendly and informative.\n\n"
+            + "Your account has been successfully created and you can now log in using the following credentials: \n\n"
+            + "email: {new_user.email} \n"
+            + "Password: {password} \n"
+            + "For security purposes, we highly recommend that you change your password after your first login. If you have any trouble accessing your account, please don't hesitate to reach out to our support team for assistance.\n\n"
+            + "Thank you for choosing Myfairy. We look forward to helping you achieve your goals.\n\n"
+        )
+        data = {
+            "subject": "Welcome to MyFairy - Login Information",
+            "body": body,
+            "user_email": new_user.email,
+        }
+        Helper.send_email(data)
+        return {"email": new_user.email, "nickname": new_user.nickname, "token": token}
