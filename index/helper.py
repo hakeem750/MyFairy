@@ -8,6 +8,7 @@ import math
 from django.contrib.auth import authenticate
 from index.model.user import User
 from rest_framework.exceptions import AuthenticationFailed
+from index.serializers.user_serializer import UserSerializer
 
 
 def generate_username(name):
@@ -294,12 +295,9 @@ def register_google_user(request, provider, email, name):
         # registered_user = authenticate(
         #     email=email, password=config('SOCIAL_SECRET'))
         user = filtered_user_by_email.first()
-
-        return {
-            "nickname": user.nickname,
-            "email": user.email,
-            "token": Helper(request).get_token(user.id, user.fullname),
-        }
+        token = Helper(request).get_token(user.id, user.fullname)
+        serializer = UserSerializer(user)
+        return {"data": serializer.data, "token": token}
 
     else:
         password = "".join([random.choice(config("SOCIAL_SECRET")) for i in range(8)])
@@ -331,4 +329,5 @@ def register_google_user(request, provider, email, name):
             "user_email": new_user.email,
         }
         Helper.send_email(data)
-        return {"email": new_user.email, "nickname": new_user.nickname, "token": token}
+        serializer = UserSerializer(new_user)
+        return {"data": serializer.data, "token": token}

@@ -5,7 +5,6 @@ from ..serializers.post_serializer import PostDetailSerializer
 from collections import OrderedDict
 
 from index import google
-from index.helper import register_social_user
 import os
 from rest_framework.exceptions import AuthenticationFailed
 from decouple import config

@@ -758,7 +758,10 @@ class GoogleSocialAuthView(APIView):
         data = register_google_user(
             request, provider=provider, email=email, name=fullname
         )
-        return Response(data, status=status.HTTP_200_OK)
+        return Response(
+            {"status": True, "data": data["data"], "token": data["token"]},
+            status=status.HTTP_200_OK,
+        )
 
 
 class GoogleAuthView(APIView):
